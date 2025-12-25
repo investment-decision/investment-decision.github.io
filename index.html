@@ -1,73 +1,371 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Market Regime Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
-        .chart-container { width: 90%; max-width: 1000px; margin: 30px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
+        /* --- 1. 기본 스타일 설정 --- */
+        :root {
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #5f6368;
+            --accent-growth: #2980b9;    /* 성장 관련 색상 (파랑) */
+            --accent-inflation: #c0392b; /* 인플레이션 관련 색상 (빨강) */
+            --accent-liquidity: #8e44ad; /* 유동성 관련 색상 (보라) */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-primary);
+        }
+
+        h1, h2, h3 { margin: 0; }
+
+        /* --- 2. 레이아웃 컨테이너 --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
+        }
+        .header h1 {
+            font-size: 2rem;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: var(--text-secondary);
+        }
+
+        /* --- 3. 차트 섹션 디자인 --- */
+        .chart-section {
+            display: grid;
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            border-left: 5px solid var(--text-secondary);
+            padding-left: 10px;
+        }
+
+        .chart-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        /* --- 4. 지표 용어집 (Glossary) 섹션 디자인 --- */
+        .glossary-section {
+            margin-top: 60px;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .indicators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .indicator-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-top: 4px solid transparent; /* 상단 컬러바 */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .indicator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
+        }
+
+        /* 카드 타입별 색상 지정 */
+        .type-growth { border-top-color: var(--accent-growth); }
+        .type-inflation { border-top-color: var(--accent-inflation); }
+        .type-liquidity { border-top-color: var(--accent-liquidity); }
+
+        .indicator-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .summary {
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        .formula {
+            background-color: #f8f9fa;
+            border-left: 4px solid #34495e;
+            padding: 12px;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #333;
+            margin: 10px 0 15px 0;
+        }
+
+        .details {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+        
+        .details ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        .details li {
+            margin-bottom: 6px;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header h1 { font-size: 1.5rem; }
+            .indicators-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="chart-container">
-        <h2>1. Macro Regime Composite (Growth vs Inflation)</h2>
-        <canvas id="mainChart"></canvas>
-    </div>
+    <div class="container">
+        
+        <div class="header">
+            <h1>Market Regime Dashboard</h1>
+            <p>Quantitative analysis of Growth, Inflation, and Liquidity signals.</p>
+        </div>
 
-    <div class="chart-container">
-        <h2>2. Components Breakdown (Z-Scores)</h2>
-        <p style="text-align:center; font-size:0.9em; color:#666;">Normalized values (0 = Average)</p>
-        <canvas id="subChart"></canvas>
+        <div class="chart-section">
+            <div class="chart-card">
+                <div class="chart-title" style="border-left-color: #2c3e50;">1. Macro Regime Composite</div>
+                <div class="chart-subtitle">Comparing Economic Growth vs. Inflation Pressure</div>
+                <canvas id="mainChart"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-title" style="border-left-color: #7f8c8d;">2. Components Breakdown (Z-Scores)</div>
+                <div class="chart-subtitle">Normalized standard deviations (0 = Historical Average)</div>
+                <canvas id="subChart"></canvas>
+            </div>
+        </div>
+
+        <div class="glossary-section">
+            <h2 class="section-title">📊 Indicator Guide & Logic</h2>
+            
+            <div class="indicators-grid">
+                
+                <div class="indicator-card type-liquidity">
+                    <h3>1. 순유동성 (Net Liquidity) <span style="font-size:0.8em; color:#8e44ad;">● Liquidity</span></h3>
+                    <p class="summary">연준(Fed)의 총자산에서 '실제로 시장에 풀리지 않은 돈'을 뺀, 실질적인 시장 연료입니다.</p>
+                    <div class="details">
+                        <div class="formula">Net Liquidity = Fed Assets - TGA - RRP</div>
+                        <p>단순히 연준 자산이 늘어난다고 유동성이 풍부한 것은 아닙니다.</p>
+                        <ul>
+                            <li><strong>TGA (정부계정):</strong> 세금 등으로 정부 통장에 묶인 돈 (흡수)</li>
+                            <li><strong>RRP (역레포):</strong> 금융기관이 연준에 다시 맡긴 돈 (흡수)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="indicator-card type-growth">
+                    <h3>2. ISM 제조업 PMI <span style="font-size:0.8em; color:#2980b9;">● Growth</span></h3>
+                    <p class="summary">실물 경기를 가장 먼저 반영하는 선행 지표입니다. (기준선: 50)</p>
+                    <div class="details">
+                        <p>기업 구매 담당자들의 설문을 바탕으로 경기 확장/수축을 판단합니다.</p>
+                        <ul>
+                            <li><strong>50 이상:</strong> 경기 확장 국면</li>
+                            <li><strong>New Orders:</strong> 특히 '신규 주문' 항목은 주식 시장 사이클과 가장 밀접하게 연동되는 강력한 선행 지표입니다.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="indicator-card type-growth">
+                    <h3>3. 민감주 vs 방어주 비율 <span style="font-size:0.8em; color:#2980b9;">● Growth</span></h3>
+                    <p class="summary">주식 시장 참여자들이 돈으로 투표한 '실시간 경제 전망'입니다.</p>
+                    <div class="details">
+                        <div class="formula">Ratio = Cyclical Stocks / Defensive Stocks</div>
+                        <p>GDP 발표는 늦지만, 주가는 매일 움직입니다.</p>
+                        <ul>
+                            <li><strong>상승 시:</strong> 투자자들이 경제 성장을 확신하여 공격적 투자 (IT, 산업재 등)</li>
+                            <li><strong>하락 시:</strong> 경기 침체(Recession) 공포로 방어적 투자 (헬스케어, 필수소비재)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="indicator-card type-inflation">
+                    <h3>4. 5년 선도 기대인플레이션 <span style="font-size:0.8em; color:#c0392b;">● Inflation</span></h3>
+                    <p class="summary">단기 이슈를 제거하고, 시장이 구조적으로 예상하는 장기 인플레이션입니다.</p>
+                    <div class="details">
+                        <p>미국 국채(명목)와 물가연동국채(TIPS)의 금리 차이를 이용합니다.</p>
+                        <ul>
+                            <li><strong>의미:</strong> 현재의 유가 급등락 같은 노이즈를 걸러내고, "향후 5년 뒤부터 5년 동안" 물가가 얼마나 오를지에 대한 시장의 뷰를 보여줍니다.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="indicator-card type-inflation">
+                    <h3>5. 원자재 지수 (Commodities) <span style="font-size:0.8em; color:#c0392b;">● Inflation</span></h3>
+                    <p class="summary">소비자 물가(CPI)를 선행하는 가장 기초적인 물가 압력 지표입니다.</p>
+                    <div class="details">
+                        <p>에너지, 금속, 농산물 가격의 흐름을 추적합니다.</p>
+                        <ul>
+                            <li><strong>파급 경로:</strong> 원자재 상승 &rarr; 생산자 물가(PPI) &rarr; 소비자 물가(CPI)</li>
+                            <li>인플레이션이 우리 지갑에 도달하기 전, 가장 먼저 감지되는 조기 경보 신호입니다.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
 
     <script>
         async function createCharts() {
-            // 데이터 가져오기
-            const response = await fetch('./data/market_indices.json');
-            const data = await response.json();
-            const labels = data.map(d => d.date);
-
-            // 1. 메인 차트 설정 (Growth & Inflation)
-            new Chart(document.getElementById('mainChart'), {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Growth Index', data: data.map(d => d.growth_index), borderColor: '#2980b9', borderWidth: 2, tension: 0.3 },
-                        { label: 'Inflation Index', data: data.map(d => d.inflation_index), borderColor: '#c0392b', borderWidth: 2, tension: 0.3 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'top' } },
-                    scales: { y: { grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#ddd', lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1 } } }
+            try {
+                // 데이터 가져오기
+                const response = await fetch('./data/market_indices.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            });
-
-            // 2. 서브 차트 설정 (4가지 요소)
-            new Chart(document.getElementById('subChart'), {
-                type: 'bar', // 변화 추이를 보기 쉽게 Bar와 Line 혼합 추천 (여기선 Line으로 통일)
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        // Growth 구성요소 (파란 계열)
-                        { label: 'Z-PMI (Manuf)', data: data.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2 },
-                        { label: 'Z-Ratio (Cyc/Def)', data: data.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 2 },
-                        // Inflation 구성요소 (붉은 계열)
-                        { label: 'Z-Expectation (5y)', data: data.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2 },
-                        { label: 'Z-Commodity', data: data.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 2 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom' } },
-                    scales: { y: { beginAtZero: false } }
+                
+                const text = await response.text();
+                if (!text) {
+                    throw new Error("Data file is empty.");
                 }
-            });
+
+                const data = JSON.parse(text);
+                const labels = data.map(d => d.date);
+
+                // --- 1. 메인 차트 (Growth vs Inflation) ---
+                new Chart(document.getElementById('mainChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { 
+                                label: 'Growth Index', 
+                                data: data.map(d => d.growth_index), 
+                                borderColor: '#2980b9', // Blue
+                                backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                                borderWidth: 2.5, 
+                                tension: 0.3,
+                                pointRadius: 0,
+                                pointHoverRadius: 6,
+                                fill: false
+                            },
+                            { 
+                                label: 'Inflation Index', 
+                                data: data.map(d => d.inflation_index), 
+                                borderColor: '#c0392b', // Red
+                                backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                                borderWidth: 2.5, 
+                                tension: 0.3,
+                                pointRadius: 0,
+                                pointHoverRadius: 6,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { 
+                            legend: { position: 'top', labels: { usePointStyle: true, font: { family: 'Inter', size: 12 } } },
+                            tooltip: { backgroundColor: 'rgba(44, 62, 80, 0.9)', padding: 10, cornerRadius: 8 }
+                        },
+                        scales: { 
+                            y: { 
+                                grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1 },
+                                ticks: { font: { family: 'Inter' } }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { font: { family: 'Inter' }, maxTicksLimit: 8 }
+                            }
+                        }
+                    }
+                });
+
+                // --- 2. 서브 차트 (Components Breakdown) ---
+                new Chart(document.getElementById('subChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            // Growth Components (Blueish)
+                            { label: 'Z-PMI', data: data.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                            { label: 'Z-Ratio (Cyc/Def)', data: data.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                            // Inflation Components (Reddish)
+                            { label: 'Z-Expectation (5y)', data: data.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                            { label: 'Z-Commodity', data: data.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: { 
+                            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } 
+                        },
+                        scales: { 
+                            y: { grid: { color: '#eee' } },
+                            x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Failed to load data:", error);
+                document.querySelector('.container').innerHTML += `<div style="text-align:center; color:red; margin-top:20px;">Error loading data: ${error.message}</div>`;
+            }
         }
+
+        // 실행
         createCharts();
     </script>
 </body>
