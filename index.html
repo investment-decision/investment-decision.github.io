@@ -295,7 +295,7 @@
                                 backgroundColor: 'rgba(41, 128, 185, 0.1)',
                                 borderWidth: 2.5, 
                                 tension: 0.3,
-                                pointRadius: 0,
+                                pointRadius: 2,
                                 pointHoverRadius: 6,
                                 fill: false
                             },
@@ -306,7 +306,7 @@
                                 backgroundColor: 'rgba(192, 57, 43, 0.1)',
                                 borderWidth: 2.5, 
                                 tension: 0.3,
-                                pointRadius: 0,
+                                pointRadius: 2,
                                 pointHoverRadius: 6,
                                 fill: false
                             }
@@ -339,11 +339,11 @@
                         labels: labels,
                         datasets: [
                             // Growth Components (Blueish)
-                            { label: 'Z-PMI', data: data.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
-                            { label: 'Z-Ratio (Cyc/Def)', data: data.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                            { label: 'Z-PMI', data: data.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2, tension: 0.2 },
+                            { label: 'Z-Ratio (Cyc/Def)', data: data.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 2, tension: 0.2 },
                             // Inflation Components (Reddish)
-                            { label: 'Z-Expectation (5y)', data: data.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
-                            { label: 'Z-Commodity', data: data.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }
+                            { label: 'Z-Expectation (5y)', data: data.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2, tension: 0.2 },
+                            { label: 'Z-Commodity', data: data.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 2, tension: 0.2 }
                         ]
                     },
                     options: {
