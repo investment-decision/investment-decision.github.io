@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Market Index Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h2 style="text-align:center;">Weekly Market Indices</h2>
+    <div style="width: 80%; margin: auto;">
+        <canvas id="marketChart"></canvas>
+    </div>
+
+    <script>
+        async function fetchData() {
+            // Github Pages에서 같은 레포지토리 내의 파일은 상대 경로로 접근 가능
+            const response = await fetch('./data/market_indices.json');
+            const data = await response.json();
+            return data;
+        }
+
+        async function createChart() {
+            const data = await fetchData();
+            
+            const ctx = document.getElementById('marketChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(row => row.date),
+                    datasets: [
+                        { label: 'Macro', data: data.map(row => row.macro), borderColor: 'red', fill: false },
+                        { label: 'Liquidity', data: data.map(row => row.liquidity), borderColor: 'blue', fill: false },
+                        { label: 'Sentiment', data: data.map(row => row.sentiment), borderColor: 'green', fill: false },
+                        { label: 'Leading', data: data.map(row => row.leading), borderColor: 'orange', fill: false }
+                    ]
+                },
+                options: { responsive: true }
+            });
+        }
+        createChart();
+    </script>
+</body>
+</html>

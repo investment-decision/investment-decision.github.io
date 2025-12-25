@@ -1,0 +1,39 @@
+name: Weekly Market Data Update
+
+on:
+  schedule:
+    # 매주 일요일 00:00 UTC (한국 시간 일요일 오전 9시) 실행
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # 수동 실행 버튼 (테스트용)
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run update script
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python scripts/update_indices.py
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add data/market_indices.json
+          # 변경사항이 있을 때만 커밋
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update market data [skip ci]" && git push)
