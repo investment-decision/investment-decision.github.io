@@ -1,42 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Market Index Dashboard</title>
+    <title>Market Regime Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .chart-container { width: 90%; max-width: 1000px; margin: 30px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+    </style>
 </head>
 <body>
-    <h2 style="text-align:center;">Weekly Market Indices</h2>
-    <div style="width: 80%; margin: auto;">
-        <canvas id="marketChart"></canvas>
+
+    <div class="chart-container">
+        <h2>1. Macro Regime Composite (Growth vs Inflation)</h2>
+        <canvas id="mainChart"></canvas>
+    </div>
+
+    <div class="chart-container">
+        <h2>2. Components Breakdown (Z-Scores)</h2>
+        <p style="text-align:center; font-size:0.9em; color:#666;">Normalized values (0 = Average)</p>
+        <canvas id="subChart"></canvas>
     </div>
 
     <script>
-        async function fetchData() {
-            // Github Pages에서 같은 레포지토리 내의 파일은 상대 경로로 접근 가능
+        async function createCharts() {
+            // 데이터 가져오기
             const response = await fetch('./data/market_indices.json');
             const data = await response.json();
-            return data;
-        }
+            const labels = data.map(d => d.date);
 
-        async function createChart() {
-            const data = await fetchData();
-            
-            const ctx = document.getElementById('marketChart').getContext('2d');
-            new Chart(ctx, {
+            // 1. 메인 차트 설정 (Growth & Inflation)
+            new Chart(document.getElementById('mainChart'), {
                 type: 'line',
                 data: {
-                    labels: data.map(row => row.date),
+                    labels: labels,
                     datasets: [
-                        { label: 'Macro', data: data.map(row => row.macro), borderColor: 'red', fill: false },
-                        { label: 'Liquidity', data: data.map(row => row.liquidity), borderColor: 'blue', fill: false },
-                        { label: 'Sentiment', data: data.map(row => row.sentiment), borderColor: 'green', fill: false },
-                        { label: 'Leading', data: data.map(row => row.leading), borderColor: 'orange', fill: false }
+                        { label: 'Growth Index', data: data.map(d => d.growth_index), borderColor: '#2980b9', borderWidth: 2, tension: 0.3 },
+                        { label: 'Inflation Index', data: data.map(d => d.inflation_index), borderColor: '#c0392b', borderWidth: 2, tension: 0.3 }
                     ]
                 },
-                options: { responsive: true }
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#ddd', lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1 } } }
+                }
+            });
+
+            // 2. 서브 차트 설정 (4가지 요소)
+            new Chart(document.getElementById('subChart'), {
+                type: 'bar', // 변화 추이를 보기 쉽게 Bar와 Line 혼합 추천 (여기선 Line으로 통일)
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        // Growth 구성요소 (파란 계열)
+                        { label: 'Z-PMI (Manuf)', data: data.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2 },
+                        { label: 'Z-Ratio (Cyc/Def)', data: data.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 2 },
+                        // Inflation 구성요소 (붉은 계열)
+                        { label: 'Z-Expectation (5y)', data: data.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2 },
+                        { label: 'Z-Commodity', data: data.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: false } }
+                }
             });
         }
-        createChart();
+        createCharts();
     </script>
 </body>
 </html>
