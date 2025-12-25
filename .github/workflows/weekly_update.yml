@@ -2,8 +2,8 @@ name: Weekly Market Data Update
 
 on:
   schedule:
-    # 매주 일요일 00:00 UTC (한국 시간 일요일 오전 9시) 실행
-    - cron: '0 0 * * 0'
+    # 매일 00:00 UTC (한국 시간 오전 9시) 실행
+    - cron: '0 0 * * *'
   workflow_dispatch: # 수동 실행 버튼 (테스트용)
 
 permissions:

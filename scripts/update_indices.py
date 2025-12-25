@@ -24,7 +24,7 @@ def fetch_market_data(fred):
     # 1. FRED 데이터 가져오기 (거시경제 + 유동성)
     print("Fetching FRED data...")
     # (1) 거시경제 지표
-    pmi_series = fred.get_series('NAPM', observation_start=start_date)
+    pmi_series = fred.get_series('IPMAN', observation_start=start_date)
     inf_exp_series = fred.get_series('T5YIFR', observation_start=start_date)
     
     # (2) 유동성 지표 (새로 추가된 부분)
