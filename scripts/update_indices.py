@@ -23,8 +23,6 @@ def get_min_max_score(series, window, inverse=False):
     Calculate Min-Max Score (0-100) based on rolling window.
     If inverse=True, higher values get lower scores (for Fear indicators).
     """
-    # Use min_periods to allow calculation even if we don't have full window yet (at start)
-    # but strictly speaking, we need enough history for accuracy.
     min_val = series.rolling(window=window, min_periods=window//2).min()
     max_val = series.rolling(window=window, min_periods=window//2).max()
     
@@ -41,7 +39,6 @@ def get_min_max_score(series, window, inverse=False):
 
 def fetch_market_data(fred):
     # --- A. Data Collection Setup (Last 3 years to ensure 2-year lookback) ---
-    # Need enough history for 504-day rolling window
     start_date = (datetime.now() - timedelta(days=365*3)).strftime('%Y-%m-%d')
     
     # 1. Fetch FRED Data
@@ -59,8 +56,8 @@ def fetch_market_data(fred):
         # Sentiment Components (FRED)
         # BAMLH0A0HYM2: ICE BofA US High Yield Index Option-Adjusted Spread
         junk_spread = fred.get_series('BAMLH0A0HYM2', observation_start=start_date)
-        # PCRVOL: CBOE Total Put/Call Ratio (Note: Data might be delayed/discontinued on FRED sometimes)
-        put_call = fred.get_series('PCRVOL', observation_start=start_date)
+        
+        # REMOVED: 'PCRVOL' (Put/Call Ratio) causes "Series does not exist" error.
         
         # Leading Components (FRED)
         # DGS10: 10-Year Treasury Constant Maturity Rate
@@ -74,8 +71,6 @@ def fetch_market_data(fred):
     
     # 2. Fetch Yahoo Finance Data
     print("Fetching Yahoo Finance data...")
-    # Added SPY (Momentum/SafeHaven), TLT (SafeHaven), ^VIX (Volatility)
-    # Added for Leading Index: HG=F (Copper), GC=F (Gold), SPHB (High Beta), SPLV (Low Vol)
     tickers = [
         'XLY', 'XLI', 'XLB', 'XLK', 'XLP', 'XLV', 'XLU', 'DBC', 
         'SPY', 'TLT', '^VIX',
@@ -96,16 +91,13 @@ def fetch_market_data(fred):
 
     # Check for missing columns
     required_tickers = ['XLY', 'XLI', 'XLB', 'XLK', 'XLP', 'XLV', 'XLU', 'DBC', 'SPY', 'TLT', '^VIX']
-    # Leading Index specific check
     leading_tickers = ['HG=F', 'GC=F', 'SPHB', 'SPLV']
     
-    # Check intersection to allow partial success, but warn
     all_required = required_tickers + leading_tickers
     missing = [t for t in all_required if t not in df.columns]
     
     if missing:
         print(f"Warning: Missing data for tickers: {missing}")
-        # If critical tickers are missing, might need to abort or handle carefully
         if 'SPY' in missing or '^VIX' in missing:
              print("Critical tickers missing for Sentiment Index. Aborting.")
              return None
@@ -125,7 +117,7 @@ def fetch_market_data(fred):
     
     # Sentiment (FRED)
     df['Junk_Spread'] = junk_spread.reindex(df.index).ffill()
-    df['Put_Call'] = put_call.reindex(df.index).ffill()
+    # df['Put_Call'] removed
     
     # Leading (FRED)
     df['DGS10'] = yield10.reindex(df.index).ffill()
@@ -141,7 +133,7 @@ def fetch_market_data(fred):
     # 2. Liquidity
     df['Net_Liquidity_Raw'] = s_walcl - s_tga - s_rrp
 
-    # 3. Composite Sentiment Oscillator (New Implementation)
+    # 3. Composite Sentiment Oscillator
     # 3.1 Market Momentum: (SPY - 125MA) / 125MA
     spy_125ma = df['SPY'].rolling(window=125).mean()
     df['Sent_Momentum_Raw'] = (df['SPY'] - spy_125ma) / spy_125ma
@@ -149,7 +141,7 @@ def fetch_market_data(fred):
     # 3.2 Market Volatility: VIX
     df['Sent_VIX_Raw'] = df['^VIX']
     
-    # 3.3 Put/Call Ratio: Already fetched as 'Put_Call'
+    # 3.3 Put/Call Ratio: Unavailable, defaulting to neutral later
     
     # 3.4 Safe Haven Demand: SPY 20d Return - TLT 20d Return
     spy_ret_20 = df['SPY'].pct_change(20)
@@ -160,7 +152,6 @@ def fetch_market_data(fred):
     
     # 4. Inter-Market Leading Indicator (IMLI)
     # 4.1 Copper/Gold Ratio
-    # Check if we have data for Copper and Gold
     if 'HG=F' in df.columns and 'GC=F' in df.columns:
         df['Lead_CopperGold_Raw'] = df['HG=F'] / df['GC=F']
     else:
@@ -176,7 +167,6 @@ def fetch_market_data(fred):
     df['Lead_YieldSpread_Raw'] = df['DGS10'] - df['DGS2']
 
     # --- D. Normalization ---
-    # Fill NaN to allow rolling calculations
     df = df.ffill()
 
     # Z-Scores for Macro/Liquidity
@@ -191,33 +181,24 @@ def fetch_market_data(fred):
     df['Z_BetaVol'] = get_z_score(df['Lead_BetaVol_Raw'], Z_SCORE_WINDOW)
     df['Z_YieldSpread'] = get_z_score(df['Lead_YieldSpread_Raw'], Z_SCORE_WINDOW)
     
-    # Min-Max Scores for Sentiment (Window=504 days approx 2 years)
-    # Note: High Momentum = Greed (Score 100)
+    # Min-Max Scores for Sentiment
     df['Score_Momentum'] = get_min_max_score(df['Sent_Momentum_Raw'], SENTIMENT_WINDOW, inverse=False)
-    
-    # Note: High VIX = Fear (Score 0) -> Inverse
     df['Score_VIX'] = get_min_max_score(df['Sent_VIX_Raw'], SENTIMENT_WINDOW, inverse=True)
-    
-    # Note: High Put/Call = Fear (Score 0) -> Inverse
-    df['Score_PutCall'] = get_min_max_score(df['Put_Call'], SENTIMENT_WINDOW, inverse=True)
-    
-    # Note: High SafeHaven (Stocks > Bonds) = Greed (Score 100)
     df['Score_SafeHaven'] = get_min_max_score(df['Sent_SafeHaven_Raw'], SENTIMENT_WINDOW, inverse=False)
-    
-    # Note: High Junk Spread = Fear (Score 0) -> Inverse
     df['Score_Junk'] = get_min_max_score(df['Junk_Spread'], SENTIMENT_WINDOW, inverse=True)
     
-    # Composite Sentiment Index (Average of 5)
+    # Set Score_PutCall to Neutral (50) since data is unavailable
+    df['Score_PutCall'] = 50.0 
+    
+    # Composite Sentiment Index (Average of 4 available components)
     df['Sentiment_Index'] = (
         df['Score_Momentum'] + 
         df['Score_VIX'] + 
-        df['Score_PutCall'] + 
         df['Score_SafeHaven'] + 
         df['Score_Junk']
-    ) / 5.0
+    ) / 4.0
     
-    # Composite Leading Index (Sum/Average of Z-Scores)
-    # Using average to keep scale consistent with other indices
+    # Composite Leading Index
     df['Leading_Index'] = (
         df['Z_CopperGold'] + 
         df['Z_BetaVol'] + 
@@ -244,7 +225,7 @@ def fetch_market_data(fred):
         "inflation": round(latest['Inflation_Index'], 2),
         "liquidity": round(latest['Liquidity_Index'], 2),
         "sentiment": round(latest['Sentiment_Index'], 2),
-        "leading": round(latest['Leading_Index'], 2), # New
+        "leading": round(latest['Leading_Index'], 2),
         
         # Macro Components
         "z_pmi": round(latest['Z_PMI'], 2),
@@ -255,10 +236,10 @@ def fetch_market_data(fred):
         # Liquidity Component
         "net_liquidity_raw": round(latest['Net_Liquidity_Raw'], 2),
         
-        # Sentiment Components (0-100)
+        # Sentiment Components
         "score_momentum": round(latest['Score_Momentum'], 1),
         "score_vix": round(latest['Score_VIX'], 1),
-        "score_putcall": round(latest['Score_PutCall'], 1),
+        "score_putcall": 50.0, # Defaulting to Neutral
         "score_safehaven": round(latest['Score_SafeHaven'], 1),
         "score_junk": round(latest['Score_Junk'], 1),
         
@@ -277,7 +258,6 @@ def update_json_file(new_record):
         except json.JSONDecodeError:
             data = []
 
-    # Remove existing record for the same date to avoid duplicates
     data = [d for d in data if d['date'] != new_record['date']]
     data.append(new_record)
     data.sort(key=lambda x: x['date'])
@@ -297,37 +277,30 @@ if __name__ == "__main__":
         market_data = fetch_market_data(fred)
         
         if market_data:
-            # Create record
             new_record = {
                 "date": datetime.now().strftime("%Y-%m-%d"),
-                
-                # Indices
                 "growth_index": market_data['growth'],
                 "inflation_index": market_data['inflation'],
                 "liquidity_index": market_data['liquidity'],
                 "sentiment_index": market_data['sentiment'],
-                "leading_index": market_data['leading'], # New
+                "leading_index": market_data['leading'],
                 
-                # Components
                 "z_pmi": market_data['z_pmi'],
                 "z_ratio": market_data['z_ratio'],
                 "z_t5yifr": market_data['z_t5yifr'],
                 "z_commodity": market_data['z_commodity'],
                 "net_liquidity_raw": market_data['net_liquidity_raw'],
                 
-                # Sentiment Scores
                 "score_momentum": market_data['score_momentum'],
                 "score_vix": market_data['score_vix'],
                 "score_putcall": market_data['score_putcall'],
                 "score_safehaven": market_data['score_safehaven'],
                 "score_junk": market_data['score_junk'],
                 
-                # Leading Components
                 "z_coppergold": market_data['z_coppergold'],
                 "z_betavol": market_data['z_betavol'],
                 "z_yieldspread": market_data['z_yieldspread']
             }
-            
             update_json_file(new_record)
         else:
             print("Failed to generate market data.")
