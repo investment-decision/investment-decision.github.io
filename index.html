@@ -93,6 +93,8 @@
             display: flex;
             flex-direction: column;
             min-height: 300px;
+            /* FIX: min-width: 0 is crucial for Grid items to allow shrinking */
+            min-width: 0; 
         }
 
         .card-header {
@@ -139,6 +141,9 @@
             flex-grow: 1;
             position: relative;
             min-height: 200px;
+            /* FIX: Ensure container fills width and hides overflow to trigger Chart.js resize */
+            width: 100%;
+            overflow: hidden;
         }
 
         /* No Data Placeholder */
