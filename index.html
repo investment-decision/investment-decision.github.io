@@ -4,19 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Market Regime Dashboard</title>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. 기본 스타일 설정 --- */
+        /* --- 1. 기본 설정 --- */
         :root {
             --bg-color: #f4f6f8;
             --card-bg: #ffffff;
             --text-primary: #2c3e50;
             --text-secondary: #5f6368;
-            --accent-growth: #2980b9;    /* 성장 관련 색상 (파랑) */
-            --accent-inflation: #c0392b; /* 인플레이션 관련 색상 (빨강) */
-            --accent-liquidity: #8e44ad; /* 유동성 관련 색상 (보라) */
+            --accent-growth: #2980b9;
+            --accent-inflation: #c0392b;
+            --accent-liquidity: #8e44ad;
+            
+            /* 국면별 색상 */
+            --color-reflation: #27ae60; /* Green */
+            --color-overheat: #e67e22;  /* Orange */
+            --color-stagflation: #c0392b; /* Red */
+            --color-deflation: #2980b9; /* Blue */
         }
 
         body {
@@ -28,146 +36,136 @@
         }
 
         h1, h2, h3 { margin: 0; }
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 4px; }
 
-        /* --- 2. 레이아웃 컨테이너 --- */
+        /* --- 2. 전체 레이아웃 --- */
         .container {
-            max-width: 1200px;
+            max-width: 1280px;
             margin: 0 auto;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding-top: 20px;
+            margin-bottom: 30px;
         }
         .header h1 {
             font-size: 2rem;
             color: var(--text-primary);
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         .header p {
             color: var(--text-secondary);
         }
 
-        /* --- 3. 차트 섹션 디자인 --- */
-        .chart-section {
-            display: grid;
-            gap: 30px;
-            margin-bottom: 60px;
-        }
-        
-        .chart-card {
+        /* --- 3. 통합 카드 스타일 --- */
+        .combined-card {
             background: var(--card-bg);
             border-radius: 12px;
             padding: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
         }
 
         .chart-title {
             font-size: 1.25rem;
             font-weight: 700;
-            margin-bottom: 10px;
             color: var(--text-primary);
             border-left: 5px solid var(--text-secondary);
             padding-left: 10px;
+            margin-bottom: 5px;
         }
 
         .chart-subtitle {
             font-size: 0.9rem;
             color: var(--text-secondary);
-            margin-bottom: 20px;
+            margin-left: 15px;
         }
 
-        /* --- 4. 지표 용어집 (Glossary) 섹션 디자인 --- */
-        .glossary-section {
-            margin-top: 60px;
-        }
-        
-        .section-title {
-            text-align: center;
-            font-size: 1.8rem;
-            margin-bottom: 30px;
-            color: var(--text-primary);
-            font-weight: 700;
-        }
-
-        .indicators-grid {
+        .card-body {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 25px;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            align-items: start;
         }
 
-        .indicator-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            border-top: 4px solid transparent; /* 상단 컬러바 */
+        /* 설명 영역 스타일 */
+        .desc-column {
             display: flex;
             flex-direction: column;
+            gap: 15px;
         }
 
-        .indicator-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.1);
-        }
-
-        /* 카드 타입별 색상 지정 */
-        .type-growth { border-top-color: var(--accent-growth); }
-        .type-inflation { border-top-color: var(--accent-inflation); }
-        .type-liquidity { border-top-color: var(--accent-liquidity); }
-
-        .indicator-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .summary {
-            font-weight: 600;
-            color: #444;
-            margin-bottom: 15px;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-
-        .formula {
+        .info-group {
             background-color: #f8f9fa;
-            border-left: 4px solid #34495e;
-            padding: 12px;
-            border-radius: 0 4px 4px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: #333;
-            margin: 10px 0 15px 0;
+            border-radius: 8px;
+            padding: 20px;
+            border-top: 5px solid #ccc;
         }
 
-        .details {
+        .info-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+        
+        .info-content {
             font-size: 0.9rem;
+            color: #444;
             line-height: 1.6;
+        }
+
+        .regime-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .recommendation-list li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        .recommendation-list li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
             color: var(--text-secondary);
         }
         
-        .details ul {
-            padding-left: 20px;
-            margin: 10px 0;
-        }
-        
-        .details li {
-            margin-bottom: 6px;
+        .asset-tag {
+            font-weight: 600;
+            color: #2c3e50;
         }
 
-        /* 모바일 대응 */
-        @media (max-width: 768px) {
-            .container { padding: 10px; }
-            .header h1 { font-size: 1.5rem; }
-            .indicators-grid { grid-template-columns: 1fr; }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* --- 반응형 --- */
+        @media (max-width: 1024px) {
+            .card-body { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -177,181 +175,291 @@
         
         <div class="header">
             <h1>Market Regime Dashboard</h1>
-            <p>Quantitative analysis of Growth, Inflation, and Liquidity signals.</p>
+            <p>Dynamic Asset Allocation Signals based on Growth, Inflation & Liquidity</p>
         </div>
 
-        <div class="chart-section">
-            <div class="chart-card">
-                <div class="chart-title" style="border-left-color: #2c3e50;">1. Macro Regime Composite</div>
-                <div class="chart-subtitle">Comparing Economic Growth vs. Inflation Pressure</div>
-                <canvas id="mainChart"></canvas>
+        <!-- 1. Macro Regime Composite (Scatter Plot) -->
+        <div class="combined-card">
+            <div class="card-header">
+                <div class="chart-title" style="border-left-color: #2c3e50;">1. Macro Regime Composite (Quadrant)</div>
+                <div class="chart-subtitle">X: Growth Index | Y: Inflation Index (Trailing 60 Days)</div>
             </div>
-
-            <div class="chart-card">
-                <div class="chart-title" style="border-left-color: #7f8c8d;">2. Components Breakdown (Z-Scores)</div>
-                <div class="chart-subtitle">Normalized standard deviations (0 = Historical Average)</div>
-                <canvas id="subChart"></canvas>
-            </div>
-        </div>
-
-        <div class="glossary-section">
-            <h2 class="section-title">📊 Indicator Guide & Logic</h2>
             
-            <div class="indicators-grid">
-                
-                <div class="indicator-card type-liquidity">
-                    <h3>1. 순유동성 (Net Liquidity) <span style="font-size:0.8em; color:#8e44ad;">● Liquidity</span></h3>
-                    <p class="summary">연준(Fed)의 총자산에서 '실제로 시장에 풀리지 않은 돈'을 뺀, 실질적인 시장 연료입니다.</p>
-                    <div class="details">
-                        <div class="formula">Net Liquidity = Fed Assets - TGA - RRP</div>
-                        <p>단순히 연준 자산이 늘어난다고 유동성이 풍부한 것은 아닙니다.</p>
-                        <ul>
-                            <li><strong>TGA (정부계정):</strong> 세금 등으로 정부 통장에 묶인 돈 (흡수)</li>
-                            <li><strong>RRP (역레포):</strong> 금융기관이 연준에 다시 맡긴 돈 (흡수)</li>
-                        </ul>
-                    </div>
+            <div class="card-body">
+                <!-- Left: Scatter Chart -->
+                <div class="chart-area" style="position: relative; height: 400px;">
+                    <canvas id="regimeChart"></canvas>
                 </div>
 
-                <div class="indicator-card type-growth">
-                    <h3>2. ISM 제조업 PMI <span style="font-size:0.8em; color:#2980b9;">● Growth</span></h3>
-                    <p class="summary">실물 경기를 가장 먼저 반영하는 선행 지표입니다. (기준선: 50)</p>
-                    <div class="details">
-                        <p>기업 구매 담당자들의 설문을 바탕으로 경기 확장/수축을 판단합니다.</p>
-                        <ul>
-                            <li><strong>50 이상:</strong> 경기 확장 국면</li>
-                            <li><strong>New Orders:</strong> 특히 '신규 주문' 항목은 주식 시장 사이클과 가장 밀접하게 연동되는 강력한 선행 지표입니다.</li>
-                        </ul>
+                <!-- Right: Dynamic Investment Guide -->
+                <div class="desc-column">
+                    <div id="dynamicRegimeCard" class="info-group">
+                        <div class="info-title">Current Regime Analysis</div>
+                        <div id="regimeContent">
+                            <!-- JS로 동적 생성됨 -->
+                            Loading analysis...
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="info-group" style="border-top-color: #95a5a6; padding: 15px;">
+                        <div class="info-content" style="font-size: 0.85rem;">
+                            <strong>How to read:</strong><br>
+                            이 차트는 최근 60일간의 시장 흐름(Trail)을 보여줍니다.<br>
+                            <span style="color:#e74c3c;">●</span> 큰 점이 <strong>오늘</strong>의 위치입니다.
+                        </div>
                     </div>
                 </div>
-
-                <div class="indicator-card type-growth">
-                    <h3>3. 민감주 vs 방어주 비율 <span style="font-size:0.8em; color:#2980b9;">● Growth</span></h3>
-                    <p class="summary">주식 시장 참여자들이 돈으로 투표한 '실시간 경제 전망'입니다.</p>
-                    <div class="details">
-                        <div class="formula">Ratio = Cyclical Stocks / Defensive Stocks</div>
-                        <p>GDP 발표는 늦지만, 주가는 매일 움직입니다.</p>
-                        <ul>
-                            <li><strong>상승 시:</strong> 투자자들이 경제 성장을 확신하여 공격적 투자 (IT, 산업재 등)</li>
-                            <li><strong>하락 시:</strong> 경기 침체(Recession) 공포로 방어적 투자 (헬스케어, 필수소비재)</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="indicator-card type-inflation">
-                    <h3>4. 5년 선도 기대인플레이션 <span style="font-size:0.8em; color:#c0392b;">● Inflation</span></h3>
-                    <p class="summary">단기 이슈를 제거하고, 시장이 구조적으로 예상하는 장기 인플레이션입니다.</p>
-                    <div class="details">
-                        <p>미국 국채(명목)와 물가연동국채(TIPS)의 금리 차이를 이용합니다.</p>
-                        <ul>
-                            <li><strong>의미:</strong> 현재의 유가 급등락 같은 노이즈를 걸러내고, "향후 5년 뒤부터 5년 동안" 물가가 얼마나 오를지에 대한 시장의 뷰를 보여줍니다.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="indicator-card type-inflation">
-                    <h3>5. 원자재 지수 (Commodities) <span style="font-size:0.8em; color:#c0392b;">● Inflation</span></h3>
-                    <p class="summary">소비자 물가(CPI)를 선행하는 가장 기초적인 물가 압력 지표입니다.</p>
-                    <div class="details">
-                        <p>에너지, 금속, 농산물 가격의 흐름을 추적합니다.</p>
-                        <ul>
-                            <li><strong>파급 경로:</strong> 원자재 상승 &rarr; 생산자 물가(PPI) &rarr; 소비자 물가(CPI)</li>
-                            <li>인플레이션이 우리 지갑에 도달하기 전, 가장 먼저 감지되는 조기 경보 신호입니다.</li>
-                        </ul>
-                    </div>
-                </div>
-
             </div>
         </div>
+
+        <!-- 2. Components Breakdown -->
+        <div class="combined-card">
+            <div class="card-header">
+                <div class="chart-title" style="border-left-color: #7f8c8d;">2. Components Breakdown (Z-Scores)</div>
+                <div class="chart-subtitle">Underlying drivers of the regime</div>
+            </div>
+
+            <div class="card-body">
+                <!-- Left: Line Chart -->
+                <div class="chart-area">
+                    <canvas id="subChart"></canvas>
+                </div>
+
+                <!-- Right: Liquidity Info -->
+                <div class="desc-column">
+                    <div class="info-group" style="border-top-color: var(--accent-liquidity);">
+                        <div class="info-title" style="color: var(--accent-liquidity);">Market Liquidity</div>
+                        <div class="info-content">
+                            <p><strong>Net Liquidity</strong></p>
+                            <span class="formula">Fed Assets - TGA - RRP</span>
+                            <ul style="margin-top:10px;">
+                                <li>연준 자산에서 실제로 시장에 풀리지 않은 돈(TGA, RRP)을 뺀 <strong>실질 유동성</strong>입니다.</li>
+                                <li>상승 시 위험자산(주식, 코인) 선호 심리가 강화됩니다.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        // --- 투자 가이드 데이터 (Investment Playbook) ---
+        const REGIME_PLAYBOOK = {
+            "Reflation": {
+                name: "제1국면: 골디락스/회복 (Reflation)",
+                color: "var(--color-reflation)", // Green
+                desc: "성장 상승(+), 물가 하락(-)",
+                overweight: "성장주(Tech), 회사채, 선진국 주식",
+                underweight: "현금, 원자재"
+            },
+            "Overheat": {
+                name: "제2국면: 과열/팽창 (Overheat)",
+                color: "var(--color-overheat)", // Orange
+                desc: "성장 상승(+), 물가 상승(+)",
+                overweight: "원자재(산업금속), 가치주(Value), 부동산",
+                underweight: "장기 국채"
+            },
+            "Stagflation": {
+                name: "제3국면: 스태그플레이션 (Stagflation)",
+                color: "var(--color-stagflation)", // Red
+                desc: "성장 하락(-), 물가 상승(+)",
+                overweight: "현금, 금(Gold), 물가연동채(TIPS)",
+                underweight: "주식 전반, 일반 채권"
+            },
+            "Deflation": {
+                name: "제4국면: 수축/디플레이션 (Deflation)",
+                color: "var(--color-deflation)", // Blue
+                desc: "성장 하락(-), 물가 하락(-)",
+                overweight: "장기 국채, 투자등급 채권, 달러",
+                underweight: "고수익 채권(High Yield), 주식"
+            }
+        };
+
+        // --- 국면 판별 함수 ---
+        function determineRegime(growth, inflation) {
+            if (growth >= 0 && inflation < 0) return "Reflation"; // 4사분면 (수학적 좌표계와 다름 주의: 여기선 G=x, I=y) -> G>0, I<0
+            if (growth >= 0 && inflation >= 0) return "Overheat"; // 1사분면
+            if (growth < 0 && inflation >= 0) return "Stagflation"; // 2사분면
+            if (growth < 0 && inflation < 0) return "Deflation"; // 3사분면
+            return "Unknown";
+        }
+
         async function createCharts() {
             try {
                 // 데이터 가져오기
                 const response = await fetch('./data/market_indices.json');
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const text = await response.text();
-                if (!text) {
-                    throw new Error("Data file is empty.");
-                }
+                if (!text) throw new Error("Data file is empty.");
 
-                const data = JSON.parse(text);
-                const labels = data.map(d => d.date);
+                const rawData = JSON.parse(text);
+                
+                // 최근 60일 데이터만 사용하여 궤적 표시 (너무 길면 지저분함)
+                const trailLength = 60;
+                const recentData = rawData.slice(-trailLength);
+                const latest = recentData[recentData.length - 1];
 
-                // --- 1. 메인 차트 (Growth vs Inflation) ---
-                new Chart(document.getElementById('mainChart'), {
-                    type: 'line',
+                // --- 1. Regime Scatter Chart Prep ---
+                // 데이터 변환: {x: growth, y: inflation}
+                const scatterData = recentData.map(d => ({
+                    x: d.growth_index,
+                    y: d.inflation_index,
+                    date: d.date
+                }));
+
+                // 현재 국면 판별 및 UI 업데이트
+                const currentRegimeKey = determineRegime(latest.growth_index, latest.inflation_index);
+                const regimeInfo = REGIME_PLAYBOOK[currentRegimeKey];
+
+                // Update Dynamic Card
+                const card = document.getElementById('dynamicRegimeCard');
+                card.style.borderTopColor = regimeInfo.color;
+                
+                document.getElementById('regimeContent').innerHTML = `
+                    <span class="regime-badge" style="background-color: ${regimeInfo.color};">${regimeInfo.name}</span>
+                    <p style="font-weight:600; margin-bottom:15px;">${regimeInfo.desc}</p>
+                    
+                    <div style="background:#fff; padding:10px; border-radius:6px; border:1px solid #eee;">
+                        <div style="color:#27ae60; font-size:0.9rem; margin-bottom:5px;">▲ 비중 확대 (Overweight)</div>
+                        <div class="asset-tag">${regimeInfo.overweight}</div>
+                        
+                        <div style="border-top:1px dashed #ddd; margin:8px 0;"></div>
+                        
+                        <div style="color:#c0392b; font-size:0.9rem; margin-bottom:5px;">▼ 비중 축소 (Underweight)</div>
+                        <div class="asset-tag" style="color:#7f8c8d;">${regimeInfo.underweight}</div>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.8rem; color:#999; text-align:right;">
+                        기준일: ${latest.date}
+                    </div>
+                `;
+
+
+                // --- Chart.js Plugin: Quadrant Backgrounds ---
+                const quadrantBackgroundPlugin = {
+                    id: 'quadrantBackground',
+                    beforeDraw: (chart) => {
+                        const {ctx, chartArea: {left, top, right, bottom}, scales: {x, y}} = chart;
+                        const midX = x.getPixelForValue(0);
+                        const midY = y.getPixelForValue(0);
+
+                        ctx.save();
+                        
+                        // 1. Overheat (Top-Right: G+, I+) - Orange Tint
+                        ctx.fillStyle = 'rgba(230, 126, 34, 0.05)';
+                        ctx.fillRect(midX, top, right - midX, midY - top);
+                        
+                        // 2. Stagflation (Top-Left: G-, I+) - Red Tint
+                        ctx.fillStyle = 'rgba(192, 57, 43, 0.05)';
+                        ctx.fillRect(left, top, midX - left, midY - top);
+                        
+                        // 3. Deflation (Bottom-Left: G-, I-) - Blue Tint
+                        ctx.fillStyle = 'rgba(41, 128, 185, 0.05)';
+                        ctx.fillRect(left, midY, midX - left, bottom - midY);
+
+                        // 4. Reflation (Bottom-Right: G+, I-) - Green Tint
+                        ctx.fillStyle = 'rgba(39, 174, 96, 0.05)';
+                        ctx.fillRect(midX, midY, right - midX, bottom - midY);
+                        
+                        ctx.restore();
+                    },
+                    afterDraw: (chart) => {
+                        // Draw Labels for Quadrants
+                        const {ctx, chartArea: {left, top, right, bottom}, scales: {x, y}} = chart;
+                        ctx.save();
+                        ctx.font = 'bold 12px Inter';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                        
+                        // Labels positions
+                        ctx.fillText("STAGFLATION", (left + x.getPixelForValue(0))/2, (top + y.getPixelForValue(0))/2);
+                        ctx.fillText("OVERHEAT", (right + x.getPixelForValue(0))/2, (top + y.getPixelForValue(0))/2);
+                        ctx.fillText("DEFLATION", (left + x.getPixelForValue(0))/2, (bottom + y.getPixelForValue(0))/2);
+                        ctx.fillText("REFLATION", (right + x.getPixelForValue(0))/2, (bottom + y.getPixelForValue(0))/2);
+                        
+                        ctx.restore();
+                    }
+                };
+
+                // --- 1. Regime Chart Config ---
+                new Chart(document.getElementById('regimeChart'), {
+                    type: 'scatter',
                     data: {
-                        labels: labels,
                         datasets: [
-                            { 
-                                label: 'Growth Index', 
-                                data: data.map(d => d.growth_index), 
-                                borderColor: '#2980b9', // Blue
-                                backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                                borderWidth: 2.5, 
-                                tension: 0.3,
+                            {
+                                label: 'Previous 60 Days',
+                                data: scatterData.slice(0, -1), // 마지막 점 제외
+                                backgroundColor: 'rgba(127, 140, 141, 0.3)',
+                                borderColor: 'rgba(127, 140, 141, 0.3)',
                                 pointRadius: 2,
-                                pointHoverRadius: 6,
-                                fill: false
+                                showLine: true, // 궤적 표시
+                                borderWidth: 1,
+                                borderDash: [2, 2],
+                                fill: false,
+                                tension: 0.1
                             },
-                            { 
-                                label: 'Inflation Index', 
-                                data: data.map(d => d.inflation_index), 
-                                borderColor: '#c0392b', // Red
-                                backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                                borderWidth: 2.5, 
-                                tension: 0.3,
-                                pointRadius: 2,
-                                pointHoverRadius: 6,
-                                fill: false
+                            {
+                                label: 'TODAY',
+                                data: [scatterData[scatterData.length - 1]], // 마지막 점만
+                                backgroundColor: '#e74c3c',
+                                borderColor: '#fff',
+                                borderWidth: 2,
+                                pointRadius: 8,
+                                pointHoverRadius: 10
                             }
                         ]
                     },
                     options: {
                         responsive: true,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: { 
-                            legend: { position: 'top', labels: { usePointStyle: true, font: { family: 'Inter', size: 12 } } },
-                            tooltip: { backgroundColor: 'rgba(44, 62, 80, 0.9)', padding: 10, cornerRadius: 8 }
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const d = context.raw;
+                                        return `${d.date}: G(${d.x.toFixed(2)}), I(${d.y.toFixed(2)})`;
+                                    }
+                                }
+                            }
                         },
-                        scales: { 
-                            y: { 
+                        scales: {
+                            x: {
+                                title: { display: true, text: 'Growth Index (-)' },
                                 grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1 },
-                                ticks: { font: { family: 'Inter' } }
+                                ticks: { callback: function(val) { return val === 0 ? '' : val; } } // 0 라벨 숨김
                             },
-                            x: { 
-                                grid: { display: false },
-                                ticks: { font: { family: 'Inter' }, maxTicksLimit: 8 }
+                            y: {
+                                title: { display: true, text: 'Inflation Index (+)' },
+                                grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1 },
+                                ticks: { callback: function(val) { return val === 0 ? '' : val; } }
                             }
                         }
-                    }
+                    },
+                    plugins: [quadrantBackgroundPlugin]
                 });
 
-                // --- 2. 서브 차트 (Components Breakdown) ---
+                // --- 2. Sub Chart (Components) ---
+                const labels = rawData.map(d => d.date);
                 new Chart(document.getElementById('subChart'), {
                     type: 'line',
                     data: {
                         labels: labels,
                         datasets: [
-                            // Growth Components (Blueish)
-                            { label: 'Z-PMI', data: data.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2, tension: 0.2 },
-                            { label: 'Z-Ratio (Cyc/Def)', data: data.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 2, tension: 0.2 },
-                            // Inflation Components (Reddish)
-                            { label: 'Z-Expectation (5y)', data: data.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1.5, pointRadius: 2, tension: 0.2 },
-                            { label: 'Z-Commodity', data: data.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 2, tension: 0.2 }
+                            { label: 'Z-PMI', data: rawData.map(d => d.z_pmi), borderColor: '#3498db', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, tension: 0.2 },
+                            { label: 'Z-Ratio', data: rawData.map(d => d.z_ratio), borderColor: '#2980b9', borderWidth: 1.5, pointRadius: 0, tension: 0.2 },
+                            { label: 'Z-Expectation', data: rawData.map(d => d.z_t5yifr), borderColor: '#e74c3c', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, tension: 0.2 },
+                            { label: 'Z-Commodity', data: rawData.map(d => d.z_commodity), borderColor: '#c0392b', borderWidth: 1.5, pointRadius: 0, tension: 0.2 }
                         ]
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
-                        plugins: { 
-                            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } 
-                        },
+                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, font: { size: 11 } } } },
                         scales: { 
                             y: { grid: { color: '#eee' } },
                             x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }
@@ -364,8 +472,6 @@
                 document.querySelector('.container').innerHTML += `<div style="text-align:center; color:red; margin-top:20px;">Error loading data: ${error.message}</div>`;
             }
         }
-
-        // 실행
         createCharts();
     </script>
 </body>
