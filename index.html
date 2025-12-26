@@ -410,25 +410,46 @@
                 const response = await fetch('./data/market_indices.json');
                 if (!response.ok) throw new Error("Network response was not ok");
                 const text = await response.text();
-                if (!text) return; // Empty file check
+                if (!text) return;
 
                 const rawData = JSON.parse(text);
                 const labels = rawData.map(d => d.date);
                 
-                // Common Chart Options
-                const commonOptions = {
+                // 1. Line Chart Options (Time Series)
+                const lineOptions = {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: { legend: { display: false } },
                     scales: { 
-                        x: { display: false }, // 깔끔하게 X축 숨김 (툴팁으로 확인)
+                        x: { 
+                            display: true, // Dates enabled
+                            ticks: { maxTicksLimit: 6, font: { size: 10 } },
+                            grid: { display: false }
+                        },
                         y: { grid: { color: '#f0f0f0' } }
                     },
                     elements: { point: { radius: 0, hoverRadius: 4 } }
                 };
 
-                // 1. Macro Regime (Scatter)
+                // 2. Macro Regime Options (Scatter, Fixed Scale)
+                const scatterOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            min: -3, max: 3, // Fixed Range
+                            grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
+                        },
+                        y: { 
+                            min: -3, max: 3, // Fixed Range
+                            grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
+                        }
+                    }
+                };
+
+                // --- Chart 1: Macro Regime (Scatter) ---
                 const trailLength = 60;
                 const recentData = rawData.slice(-trailLength);
                 const scatterData = recentData.map(d => ({ x: d.growth_index, y: d.inflation_index }));
@@ -449,31 +470,23 @@
                             }
                         ]
                     },
-                    options: {
-                        ...commonOptions,
-                        scales: {
-                            x: { grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee' } },
-                            y: { grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee' } }
-                        }
-                    }
+                    options: scatterOptions
                 });
 
-                // 2. Liquidity (Line)
+                // --- Chart 2: Liquidity (Line) ---
                 new Chart(document.getElementById('chartLiquidity'), {
                     type: 'line',
                     data: {
                         labels: labels,
                         datasets: [{ 
-                            data: rawData.map(d => d.liquidity_index), // Using index if avail
+                            data: rawData.map(d => d.liquidity_index), 
                             borderColor: '#af52de', borderWidth: 2, fill: false, tension: 0.3 
                         }]
                     },
-                    options: commonOptions
+                    options: lineOptions
                 });
 
-                // 3 & 4: No Data (Skip)
-
-                // Row 2 Components
+                // --- Row 2: Components (Lines) ---
                 const createComponentChart = (id, dataKey, color) => {
                     new Chart(document.getElementById(id), {
                         type: 'line',
@@ -484,7 +497,7 @@
                                 borderColor: color, borderWidth: 1.5, fill: false, tension: 0.1 
                             }]
                         },
-                        options: commonOptions
+                        options: lineOptions
                     });
                 };
 
