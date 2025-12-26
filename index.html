@@ -48,6 +48,23 @@
             color: var(--text-primary);
         }
 
+        /* --- AdSense Style --- */
+        .ad-banner {
+            width: 100%;
+            height: 100px; /* 권장 높이 조절 가능 */
+            background-color: #e4e6eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px dashed #ccc;
+            text-align: center;
+        }
+
         /* --- 2. 그리드 레이아웃 (4 Columns) --- */
         .dashboard-row {
             display: grid;
@@ -207,6 +224,12 @@
             <h1>Market Regime Dashboard</h1>
         </div>
 
+        <!-- AdSense Position 1: Top Leaderboard -->
+        <div class="ad-banner">
+            Google AdSense Placeholder (Top)
+            <br><span style="font-weight:400; font-size:0.8em;">Responsive Display Ad Recommended</span>
+        </div>
+
         <!-- ROW 1: Main Indices -->
         <div class="section-title">Row 1: Main Market Indices</div>
         <div class="dashboard-row">
@@ -266,6 +289,12 @@
                     <div class="no-data">Data Not Available<br>(Requires Backend Update)</div>
                 </div>
             </div>
+        </div>
+
+        <!-- AdSense Position 2: Middle Banner -->
+        <div class="ad-banner">
+            Google AdSense Placeholder (Middle)
+            <br><span style="font-weight:400; font-size:0.8em;">Responsive In-article or Display Ad</span>
         </div>
 
         <!-- ROW 2: Components (Z-Scores) -->
