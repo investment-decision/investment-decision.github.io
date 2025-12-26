@@ -9,5 +9,16 @@
         "z_t5yifr": -0.09,
         "z_commodity": 1.93,
         "net_liquidity_raw": 5723763.2
+    },
+    {
+        "date": "2025-12-26",
+        "growth_index": 0.57,
+        "inflation_index": 0.92,
+        "liquidity_index": -1.33,
+        "z_pmi": 0.42,
+        "z_ratio": 0.73,
+        "z_t5yifr": -0.09,
+        "z_commodity": 1.93,
+        "net_liquidity_raw": 5723763.2
     }
 ]
