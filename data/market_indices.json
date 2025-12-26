@@ -12,13 +12,23 @@
     },
     {
         "date": "2025-12-26",
-        "growth_index": 0.57,
+        "growth_index": 0.56,
         "inflation_index": 0.92,
-        "liquidity_index": -1.33,
-        "z_pmi": 0.42,
-        "z_ratio": 0.73,
+        "liquidity_index": -1.32,
+        "sentiment_index": 70.88,
+        "leading_index": 0.96,
+        "z_pmi": 0.4,
+        "z_ratio": 0.72,
         "z_t5yifr": -0.09,
         "z_commodity": 1.93,
-        "net_liquidity_raw": 5723763.2
+        "net_liquidity_raw": 5723763.2,
+        "score_momentum": 41.4,
+        "score_vix": 94.4,
+        "score_putcall": 50.0,
+        "score_safehaven": 59.6,
+        "score_junk": 88.1,
+        "z_coppergold": -0.96,
+        "z_betavol": 1.74,
+        "z_yieldspread": 2.11
     }
 ]
