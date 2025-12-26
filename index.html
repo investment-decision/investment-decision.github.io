@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* --- 1. 기본 설정 --- */
+        /* --- 1. Basic Settings --- */
         :root {
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
@@ -34,7 +34,7 @@
         h1, h2, h3 { margin: 0; }
         
         .container {
-            max-width: 1600px; /* 넓은 화면 활용 */
+            max-width: 1600px;
             margin: 0 auto;
         }
 
@@ -51,7 +51,7 @@
         /* --- AdSense Style --- */
         .ad-banner {
             width: 100%;
-            height: 100px; /* 권장 높이 조절 가능 */
+            height: 100px;
             background-color: #e4e6eb;
             display: flex;
             align-items: center;
@@ -65,7 +65,7 @@
             text-align: center;
         }
 
-        /* --- 2. 그리드 레이아웃 (4 Columns) --- */
+        /* --- 2. Grid Layout (4 Columns) --- */
         .dashboard-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -83,7 +83,7 @@
             line-height: 1.2;
         }
 
-        /* --- 3. 카드 스타일 --- */
+        /* --- 3. Card Style --- */
         .chart-card {
             background: var(--card-bg);
             border-radius: 12px;
@@ -114,7 +114,7 @@
             margin-top: 2px;
         }
 
-        /* 정보 버튼 (?) */
+        /* Info Button (?) */
         .info-btn {
             background: #f0f2f5;
             border: none;
@@ -141,7 +141,7 @@
             min-height: 200px;
         }
 
-        /* 플레이스홀더 (데이터 없음) */
+        /* No Data Placeholder */
         .no-data {
             display: flex;
             align-items: center;
@@ -154,7 +154,7 @@
             border: 1px dashed #ddd;
         }
 
-        /* --- 4. 팝업 모달 --- */
+        /* --- 4. Popup Modal --- */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -208,7 +208,7 @@
         .modal-body ul { padding-left: 20px; margin: 10px 0; }
         .modal-body li { margin-bottom: 5px; }
 
-        /* --- 반응형 --- */
+        /* --- Responsive --- */
         @media (max-width: 1200px) {
             .dashboard-row { grid-template-columns: repeat(2, 1fr); }
         }
@@ -224,7 +224,7 @@
             <h1>Market Regime Dashboard</h1>
         </div>
 
-        <!-- AdSense Position 1: Top Leaderboard -->
+        <!-- AdSense Position 1 -->
         <div class="ad-banner">
             Google AdSense Placeholder (Top)
             <br><span style="font-weight:400; font-size:0.8em;">Responsive Display Ad Recommended</span>
@@ -267,12 +267,12 @@
                 <div class="card-header">
                     <div>
                         <div class="chart-title">Composite Sentiment Oscillator</div>
-                        <div class="chart-subtitle">Fear vs Greed</div>
+                        <div class="chart-subtitle">Fear vs Greed (0-100)</div>
                     </div>
                     <button class="info-btn" onclick="openModal('sentiment')">?</button>
                 </div>
                 <div class="chart-area">
-                    <div class="no-data">Data Not Available<br>(Requires Backend Update)</div>
+                    <canvas id="chartSentiment"></canvas>
                 </div>
             </div>
 
@@ -281,24 +281,24 @@
                 <div class="card-header">
                     <div>
                         <div class="chart-title">Inter-Market Leading Indicator</div>
-                        <div class="chart-subtitle">Copper/Gold, Yield Curve</div>
+                        <div class="chart-subtitle">Smart Money Composite</div>
                     </div>
                     <button class="info-btn" onclick="openModal('leading')">?</button>
                 </div>
                 <div class="chart-area">
-                    <div class="no-data">Data Not Available<br>(Requires Backend Update)</div>
+                    <canvas id="chartLeading"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- AdSense Position 2: Middle Banner -->
+        <!-- AdSense Position 2 -->
         <div class="ad-banner">
             Google AdSense Placeholder (Middle)
             <br><span style="font-weight:400; font-size:0.8em;">Responsive In-article or Display Ad</span>
         </div>
 
-        <!-- ROW 2: Components (Z-Scores) -->
-        <div class="section-title">Row 2: Component Drivers (Time Series)</div>
+        <!-- ROW 2: Macro Components (Z-Scores) -->
+        <div class="section-title">Row 2: Macro Drivers (Time Series)</div>
         <div class="dashboard-row">
             
             <!-- 2-1. Z_PMI -->
@@ -357,6 +357,126 @@
                 </div>
             </div>
         </div>
+
+        <!-- ROW 3: Sentiment Components (0-100) -->
+        <div class="section-title">Row 3: Sentiment Components (0 = Fear, 100 = Greed)</div>
+        <div class="dashboard-row">
+            <!-- 3-1. Momentum -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Momentum Score</div>
+                        <div class="chart-subtitle">SPY vs 125MA</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('mom')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartSentMom"></canvas>
+                </div>
+            </div>
+
+            <!-- 3-2. VIX -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Volatility Score (Inv)</div>
+                        <div class="chart-subtitle">VIX Index</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('vix')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartSentVix"></canvas>
+                </div>
+            </div>
+
+            <!-- 3-3. Put/Call -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Put/Call Score (Inv)</div>
+                        <div class="chart-subtitle">Option Market Sentiment</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('pc')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartSentPC"></canvas>
+                </div>
+            </div>
+
+            <!-- 3-4. Safe Haven -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Safe Haven Score</div>
+                        <div class="chart-subtitle">Stock vs Bond Return</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('safe')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartSentSafe"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 4: More Components (Sentiment & Leading) -->
+        <div class="section-title">Row 4: Sentiment (Junk) & Leading Components</div>
+        <div class="dashboard-row">
+            <!-- 4-1. Junk Spread -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Junk Bond Score (Inv)</div>
+                        <div class="chart-subtitle">Credit Risk Appetite</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('junk')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartSentJunk"></canvas>
+                </div>
+            </div>
+
+            <!-- 4-2. Copper/Gold -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Z_Copper/Gold</div>
+                        <div class="chart-subtitle">Eco Recovery vs Fear</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('cg')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartLeadCG"></canvas>
+                </div>
+            </div>
+
+            <!-- 4-3. Beta/Vol -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Z_Beta/Volatility</div>
+                        <div class="chart-subtitle">Risk On vs Off</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('bv')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartLeadBV"></canvas>
+                </div>
+            </div>
+
+            <!-- 4-4. Yield Spread -->
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="chart-title">Z_Yield Spread (10Y-2Y)</div>
+                        <div class="chart-subtitle">Recession Warning</div>
+                    </div>
+                    <button class="info-btn" onclick="openModal('ys')">?</button>
+                </div>
+                <div class="chart-area">
+                    <canvas id="chartLeadYS"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Template -->
@@ -394,13 +514,21 @@
             },
             sentiment: {
                 title: "복합 심리 오실레이터 (Sentiment)",
-                body: `<p>시장 참여자들의 공포와 탐욕을 측정합니다.</p>
-                       <ul><li>VIX, 풋/콜 비율, 정크본드 스프레드 등을 종합</li><li>극단적 공포(저점)와 탐욕(고점)을 식별하여 역발상 투자에 활용</li></ul>`
+                body: `<p>시장 참여자들의 공포와 탐욕을 측정합니다 (0~100).</p>
+                       <ul>
+                           <li><strong>0-20 (Extreme Fear):</strong> 공포. 역발상 매수 기회.</li>
+                           <li><strong>80-100 (Extreme Greed):</strong> 탐욕. 매도/이익실현 고려.</li>
+                           <li>구성: VIX, 풋/콜 비율, 하이일드 스프레드, 모멘텀, 안전자산 수요</li>
+                       </ul>`
             },
             leading: {
                 title: "시장 간 선행 지수 (Leading Indicator)",
-                body: `<p>채권과 원자재 시장의 스마트 머니 흐름을 통해 주식 시장의 방향을 선행 예측합니다.</p>
-                       <ul><li>구리/금 비율, 장단기 금리차 등 활용</li></ul>`
+                body: `<p>채권과 원자재 시장의 '스마트 머니' 흐름을 통해 주식 시장의 방향을 선행 예측합니다.</p>
+                       <ul>
+                           <li><strong>구리/금 비율:</strong> 경기 회복 vs 공포</li>
+                           <li><strong>장단기 금리차:</strong> 경기 침체 경고 (역전 시)</li>
+                           <li><strong>하이베타/저변동성:</strong> 내부 시장 에너지</li>
+                       </ul>`
             },
             pmi: {
                 title: "Z_PMI (ISM Manufacturing)",
@@ -417,7 +545,15 @@
             commodity: {
                 title: "Z_Commodity (Broad Index)",
                 body: `<p>원자재(에너지, 금속, 농산물) 가격 지수입니다. 소비자물가(CPI)를 선행하는 물가 압력 지표입니다.</p>`
-            }
+            },
+            mom: { title: "Momentum Score", body: "<p>주가와 125일 이평선 이격도. 높을수록 탐욕.</p>" },
+            vix: { title: "VIX Score", body: "<p>변동성 지수. 높을수록 공포(점수 낮음).</p>" },
+            pc: { title: "Put/Call Score", body: "<p>풋옵션 거래량 비율. 높을수록 공포(점수 낮음).</p>" },
+            safe: { title: "Safe Haven Score", body: "<p>주식 vs 채권 수익률 차이. 주식 우위 시 탐욕.</p>" },
+            junk: { title: "Junk Bond Score", body: "<p>하이일드 스프레드. 스프레드 확대 시 공포(점수 낮음).</p>" },
+            cg: { title: "Z_Copper/Gold", body: "<p>구리(경기) 대 금(공포) 비율. 상승 시 경기 회복 신호.</p>" },
+            bv: { title: "Z_Beta/Volatility", body: "<p>공격적 주식 vs 안정적 주식 비율. 내부 시장 에너지.</p>" },
+            ys: { title: "Z_Yield Spread", body: "<p>장단기 금리차(10Y-2Y). 역전 시 침체 경고.</p>" }
         };
 
         function openModal(key) {
@@ -436,6 +572,7 @@
         // --- Chart Logic ---
         async function createCharts() {
             try {
+                // Ensure the path is correct for your environment
                 const response = await fetch('./data/market_indices.json');
                 if (!response.ok) throw new Error("Network response was not ok");
                 const text = await response.text();
@@ -452,7 +589,7 @@
                     plugins: { legend: { display: false } },
                     scales: { 
                         x: { 
-                            display: true, // Dates enabled
+                            display: true, 
                             ticks: { maxTicksLimit: 6, font: { size: 10 } },
                             grid: { display: false }
                         },
@@ -468,14 +605,31 @@
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { 
-                            min: -3, max: 3, // Fixed Range
+                            min: -3, max: 3, 
                             grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
                         },
                         y: { 
-                            min: -3, max: 3, // Fixed Range
+                            min: -3, max: 3, 
                             grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
                         }
                     }
+                };
+
+                // 3. Sentiment Options (Fixed 0-100)
+                const sentimentOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        x: { display: true, ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { display: false } },
+                        y: { 
+                            min: 0, max: 100,
+                            grid: { color: '#f0f0f0' },
+                            ticks: { stepSize: 20 }
+                        }
+                    },
+                    elements: { point: { radius: 0, hoverRadius: 4 } }
                 };
 
                 // --- Chart 1: Macro Regime (Scatter) ---
@@ -515,8 +669,45 @@
                     options: lineOptions
                 });
 
-                // --- Row 2: Components (Lines) ---
-                const createComponentChart = (id, dataKey, color) => {
+                // --- Chart 3: Sentiment (Line 0-100) ---
+                new Chart(document.getElementById('chartSentiment'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { 
+                                data: rawData.map(d => d.sentiment_index), 
+                                borderColor: '#ff9500', borderWidth: 2, fill: false, tension: 0.3 
+                            },
+                            // Threshold Lines
+                            {
+                                data: Array(labels.length).fill(80),
+                                borderColor: 'rgba(231, 76, 60, 0.3)', borderWidth: 1, borderDash: [5, 5], pointRadius: 0, fill: false
+                            },
+                            {
+                                data: Array(labels.length).fill(20),
+                                borderColor: 'rgba(46, 204, 113, 0.3)', borderWidth: 1, borderDash: [5, 5], pointRadius: 0, fill: false
+                            }
+                        ]
+                    },
+                    options: sentimentOptions
+                });
+
+                // --- Chart 4: Leading (Line) ---
+                new Chart(document.getElementById('chartLeading'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{ 
+                            data: rawData.map(d => d.leading_index), 
+                            borderColor: '#34c759', borderWidth: 2, fill: false, tension: 0.3 
+                        }]
+                    },
+                    options: lineOptions
+                });
+
+                // --- Helper for Single Line Chart ---
+                const createComponentChart = (id, dataKey, color, options = lineOptions) => {
                     new Chart(document.getElementById(id), {
                         type: 'line',
                         data: {
@@ -526,14 +717,27 @@
                                 borderColor: color, borderWidth: 1.5, fill: false, tension: 0.1 
                             }]
                         },
-                        options: lineOptions
+                        options: options
                     });
                 };
 
+                // Row 2: Macro Components
                 createComponentChart('chartPmi', 'z_pmi', '#007aff');
                 createComponentChart('chartRatio', 'z_ratio', '#007aff');
                 createComponentChart('chartT5yifr', 'z_t5yifr', '#ff3b30');
                 createComponentChart('chartCommodity', 'z_commodity', '#ff3b30');
+
+                // Row 3: Sentiment Components (0-100)
+                createComponentChart('chartSentMom', 'score_momentum', '#ff9500', sentimentOptions);
+                createComponentChart('chartSentVix', 'score_vix', '#ff9500', sentimentOptions);
+                createComponentChart('chartSentPC', 'score_putcall', '#ff9500', sentimentOptions);
+                createComponentChart('chartSentSafe', 'score_safehaven', '#ff9500', sentimentOptions);
+
+                // Row 4: Sentiment (Junk) & Leading Components
+                createComponentChart('chartSentJunk', 'score_junk', '#ff9500', sentimentOptions);
+                createComponentChart('chartLeadCG', 'z_coppergold', '#34c759');
+                createComponentChart('chartLeadBV', 'z_betavol', '#34c759');
+                createComponentChart('chartLeadYS', 'z_yieldspread', '#34c759');
 
             } catch (error) {
                 console.error("Error:", error);
