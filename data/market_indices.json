@@ -93,5 +93,26 @@
         "z_coppergold": -0.76,
         "z_betavol": 1.7,
         "z_yieldspread": 2.08
+    },
+    {
+        "date": "2025-12-30",
+        "growth_index": 0.5,
+        "inflation_index": 0.6,
+        "liquidity_index": -1.24,
+        "sentiment_index": 69.36,
+        "leading_index": 0.86,
+        "z_pmi": 0.4,
+        "z_ratio": 0.61,
+        "z_t5yifr": -0.48,
+        "z_commodity": 1.69,
+        "net_liquidity_raw": 5744100.45,
+        "score_momentum": 41.4,
+        "score_vix": 94.2,
+        "score_putcall": 50.0,
+        "score_safehaven": 55.2,
+        "score_junk": 86.6,
+        "z_coppergold": -0.73,
+        "z_betavol": 1.63,
+        "z_yieldspread": 1.69
     }
 ]
