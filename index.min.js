@@ -339,4 +339,9 @@ async function createCharts() {
     }
 }
 
-createCharts();
+// Fix: Ensure DOM is fully loaded before initializing charts
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', createCharts);
+} else {
+    createCharts();
+}
