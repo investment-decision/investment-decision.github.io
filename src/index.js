@@ -47,11 +47,11 @@ async function createCharts() {
             plugins: { legend: { display: false } },
             scales: {
                 x: {
-                    min: -3, max: 3,
+                    min: -1.5, max: 1.5,
                     grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
                 },
                 y: {
-                    min: -3, max: 3,
+                    min: -1.5, max: 1.5,
                     grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
                 }
             }
