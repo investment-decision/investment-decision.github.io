@@ -1,0 +1,1 @@
+minify ./src/index.js > ./index.min.js

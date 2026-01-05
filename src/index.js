@@ -325,11 +325,11 @@ async function createCharts() {
         // Row 3: Sentiment Components (0-100)
         createComponentChart('chartSentMom', 11, '#ff9500', sentimentOptions);
         createComponentChart('chartSentVix', 12, '#ff9500', sentimentOptions);
-        createComponentChart('chartSentPC', 13, '#ff9500', sentimentOptions);
+        // createComponentChart('chartSentPC', 13, '#ff9500', sentimentOptions);
         createComponentChart('chartSentSafe', 14, '#ff9500', sentimentOptions);
-
-        // Row 4: Sentiment (Junk) & Leading Components
         createComponentChart('chartSentJunk', 15, '#ff9500', sentimentOptions);
+
+        // Row 4: Leading Components
         createComponentChart('chartLeadCG', 16, '#34c759');
         createComponentChart('chartLeadBV', 17, '#34c759');
         createComponentChart('chartLeadYS', 18, '#34c759');
