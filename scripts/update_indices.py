@@ -54,14 +54,9 @@ def fetch_market_data(fred):
         rrp = fred.get_series('RRPONTSYD', observation_start=start_date) # Reverse Repo
         
         # Sentiment Components (FRED)
-        # BAMLH0A0HYM2: ICE BofA US High Yield Index Option-Adjusted Spread
         junk_spread = fred.get_series('BAMLH0A0HYM2', observation_start=start_date)
         
-        # REMOVED: 'PCRVOL' (Put/Call Ratio) causes "Series does not exist" error.
-        
         # Leading Components (FRED)
-        # DGS10: 10-Year Treasury Constant Maturity Rate
-        # DGS2: 2-Year Treasury Constant Maturity Rate
         yield10 = fred.get_series('DGS10', observation_start=start_date)
         yield2 = fred.get_series('DGS2', observation_start=start_date)
         
@@ -77,10 +72,8 @@ def fetch_market_data(fred):
         'HG=F', 'GC=F', 'SPHB', 'SPLV'
     ]
 
-    # threads=False helps avoid rate limits in GitHub Actions
     data = yf.download(tickers, start=start_date, progress=False, threads=False)
 
-    # Handle yfinance MultiIndex
     if isinstance(data.columns, pd.MultiIndex):
         if 'Adj Close' in data.columns.get_level_values(0):
             df = data['Adj Close']
@@ -89,11 +82,10 @@ def fetch_market_data(fred):
     else:
         df = data['Adj Close'] if 'Adj Close' in data.columns else data
 
-    # Check for missing columns
     required_tickers = ['XLY', 'XLI', 'XLB', 'XLK', 'XLP', 'XLV', 'XLU', 'DBC', 'SPY', 'TLT', '^VIX']
     leading_tickers = ['HG=F', 'GC=F', 'SPHB', 'SPLV']
-    
     all_required = required_tickers + leading_tickers
+    
     missing = [t for t in all_required if t not in df.columns]
     
     if missing:
@@ -106,26 +98,20 @@ def fetch_market_data(fred):
     df.index = df.index.normalize()
     
     # FRED Data Merge
-    # Macro
     df['PMI'] = pmi_series.resample('D').ffill().reindex(df.index).ffill()
     df['T5YIFR'] = inf_exp_series.reindex(df.index).ffill()
     
-    # Liquidity
     s_walcl = walcl.resample('D').ffill().reindex(df.index).ffill()
     s_tga = tga.resample('D').ffill().reindex(df.index).ffill()
     s_rrp = rrp.reindex(df.index).ffill()
     
-    # Sentiment (FRED)
     df['Junk_Spread'] = junk_spread.reindex(df.index).ffill()
-    # df['Put_Call'] removed
-    
-    # Leading (FRED)
     df['DGS10'] = yield10.reindex(df.index).ffill()
     df['DGS2'] = yield2.reindex(df.index).ffill()
 
     # --- C. Index Calculation ---
     
-    # 1. Macro (Cyclical / Defensive)
+    # 1. Macro
     cyclical = df['XLY'] + df['XLI'] + df['XLB'] + df['XLK']
     defensive = df['XLP'] + df['XLV'] + df['XLU']
     df['Cyc_Def_Ratio'] = cyclical / defensive
@@ -133,64 +119,47 @@ def fetch_market_data(fred):
     # 2. Liquidity
     df['Net_Liquidity_Raw'] = s_walcl - s_tga - s_rrp
 
-    # 3. Composite Sentiment Oscillator
-    # 3.1 Market Momentum: (SPY - 125MA) / 125MA
+    # 3. Composite Sentiment
     spy_125ma = df['SPY'].rolling(window=125).mean()
     df['Sent_Momentum_Raw'] = (df['SPY'] - spy_125ma) / spy_125ma
-    
-    # 3.2 Market Volatility: VIX
     df['Sent_VIX_Raw'] = df['^VIX']
     
-    # 3.3 Put/Call Ratio: Unavailable, defaulting to neutral later
-    
-    # 3.4 Safe Haven Demand: SPY 20d Return - TLT 20d Return
     spy_ret_20 = df['SPY'].pct_change(20)
     tlt_ret_20 = df['TLT'].pct_change(20)
     df['Sent_SafeHaven_Raw'] = spy_ret_20 - tlt_ret_20
     
-    # 3.5 Junk Bond Demand: Already fetched as 'Junk_Spread'
-    
-    # 4. Inter-Market Leading Indicator (IMLI)
-    # 4.1 Copper/Gold Ratio
+    # 4. Leading
     if 'HG=F' in df.columns and 'GC=F' in df.columns:
         df['Lead_CopperGold_Raw'] = df['HG=F'] / df['GC=F']
     else:
         df['Lead_CopperGold_Raw'] = pd.NA
         
-    # 4.2 High Beta / Low Volatility
     if 'SPHB' in df.columns and 'SPLV' in df.columns:
         df['Lead_BetaVol_Raw'] = df['SPHB'] / df['SPLV']
     else:
         df['Lead_BetaVol_Raw'] = pd.NA
         
-    # 4.3 Yield Curve Spread (10Y - 2Y)
     df['Lead_YieldSpread_Raw'] = df['DGS10'] - df['DGS2']
 
     # --- D. Normalization ---
     df = df.ffill()
 
-    # Z-Scores for Macro/Liquidity
     df['Z_PMI'] = get_z_score(df['PMI'], Z_SCORE_WINDOW)
     df['Z_Ratio'] = get_z_score(df['Cyc_Def_Ratio'], Z_SCORE_WINDOW)
     df['Z_T5YIFR'] = get_z_score(df['T5YIFR'], Z_SCORE_WINDOW)
     df['Z_Commodity'] = get_z_score(df['DBC'], Z_SCORE_WINDOW)
     df['Z_Liquidity'] = get_z_score(df['Net_Liquidity_Raw'], Z_SCORE_WINDOW)
     
-    # Z-Scores for Leading Indicator
     df['Z_CopperGold'] = get_z_score(df['Lead_CopperGold_Raw'], Z_SCORE_WINDOW)
     df['Z_BetaVol'] = get_z_score(df['Lead_BetaVol_Raw'], Z_SCORE_WINDOW)
     df['Z_YieldSpread'] = get_z_score(df['Lead_YieldSpread_Raw'], Z_SCORE_WINDOW)
     
-    # Min-Max Scores for Sentiment
     df['Score_Momentum'] = get_min_max_score(df['Sent_Momentum_Raw'], SENTIMENT_WINDOW, inverse=False)
     df['Score_VIX'] = get_min_max_score(df['Sent_VIX_Raw'], SENTIMENT_WINDOW, inverse=True)
     df['Score_SafeHaven'] = get_min_max_score(df['Sent_SafeHaven_Raw'], SENTIMENT_WINDOW, inverse=False)
     df['Score_Junk'] = get_min_max_score(df['Junk_Spread'], SENTIMENT_WINDOW, inverse=True)
+    df['Score_PutCall'] = 50.0 # Placeholder
     
-    # Set Score_PutCall to Neutral (50) since data is unavailable
-    df['Score_PutCall'] = 50.0 
-    
-    # Composite Sentiment Index (Average of 4 available components)
     df['Sentiment_Index'] = (
         df['Score_Momentum'] + 
         df['Score_VIX'] + 
@@ -198,7 +167,6 @@ def fetch_market_data(fred):
         df['Score_Junk']
     ) / 4.0
     
-    # Composite Leading Index
     df['Leading_Index'] = (
         df['Z_CopperGold'] + 
         df['Z_BetaVol'] + 
@@ -210,7 +178,6 @@ def fetch_market_data(fred):
     df['Inflation_Index'] = 0.5 * df['Z_T5YIFR'] + 0.5 * df['Z_Commodity']
     df['Liquidity_Index'] = df['Z_Liquidity']
 
-    # Drop NaNs
     valid_df = df.dropna(subset=['Growth_Index', 'Sentiment_Index', 'Leading_Index'])
     
     if valid_df.empty:
@@ -220,52 +187,80 @@ def fetch_market_data(fred):
     latest = valid_df.iloc[-1]
     
     return {
-        # Main Indices
         "growth": round(latest['Growth_Index'], 2),
         "inflation": round(latest['Inflation_Index'], 2),
         "liquidity": round(latest['Liquidity_Index'], 2),
         "sentiment": round(latest['Sentiment_Index'], 2),
         "leading": round(latest['Leading_Index'], 2),
         
-        # Macro Components
         "z_pmi": round(latest['Z_PMI'], 2),
         "z_ratio": round(latest['Z_Ratio'], 2),
         "z_t5yifr": round(latest['Z_T5YIFR'], 2),
         "z_commodity": round(latest['Z_Commodity'], 2),
-        
-        # Liquidity Component
         "net_liquidity_raw": round(latest['Net_Liquidity_Raw'], 2),
         
-        # Sentiment Components
         "score_momentum": round(latest['Score_Momentum'], 1),
         "score_vix": round(latest['Score_VIX'], 1),
-        "score_putcall": 50.0, # Defaulting to Neutral
+        "score_putcall": 50.0,
         "score_safehaven": round(latest['Score_SafeHaven'], 1),
         "score_junk": round(latest['Score_Junk'], 1),
         
-        # Leading Components
         "z_coppergold": round(latest['Z_CopperGold'], 2),
         "z_betavol": round(latest['Z_BetaVol'], 2),
         "z_yieldspread": round(latest['Z_YieldSpread'], 2)
     }
 
-def update_json_file(new_record):
+def update_json_file(new_record_list):
     data = []
     if os.path.exists(DATA_PATH):
         try:
             with open(DATA_PATH, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                loaded = json.load(f)
+                
+                # Check format: If it's a list of dicts (Old format), migrate it
+                if loaded and isinstance(loaded, list) and len(loaded) > 0 and isinstance(loaded[0], dict):
+                    print("Migrating old JSON format (Dict) to new format (List)...")
+                    for item in loaded:
+                        # Extract in specific order matches new_record_list below
+                        row = [
+                            item.get('date'),
+                            item.get('growth_index'),
+                            item.get('inflation_index'),
+                            item.get('liquidity_index'),
+                            item.get('sentiment_index'),
+                            item.get('leading_index'),
+                            item.get('z_pmi'),
+                            item.get('z_ratio'),
+                            item.get('z_t5yifr'),
+                            item.get('z_commodity'),
+                            item.get('net_liquidity_raw'),
+                            item.get('score_momentum'),
+                            item.get('score_vix'),
+                            item.get('score_putcall'),
+                            item.get('score_safehaven'),
+                            item.get('score_junk'),
+                            item.get('z_coppergold'),
+                            item.get('z_betavol'),
+                            item.get('z_yieldspread')
+                        ]
+                        data.append(row)
+                else:
+                    data = loaded
         except json.JSONDecodeError:
             data = []
 
-    data = [d for d in data if d['date'] != new_record['date']]
-    data.append(new_record)
-    data.sort(key=lambda x: x['date'])
+    # Remove existing record for same date (index 0)
+    # Filter out if date matches new record
+    data = [d for d in data if d[0] != new_record_list[0]]
+    
+    data.append(new_record_list)
+    # Sort by date
+    data.sort(key=lambda x: x[0])
 
     os.makedirs(os.path.dirname(DATA_PATH), exist_ok=True)
     with open(DATA_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4)
-    print(f"Updated data for {new_record['date']}")
+        json.dump(data, f, separators=(',', ':')) # Minimal separators for smaller file
+    print(f"Updated data for {new_record_list[0]}")
 
 if __name__ == "__main__":
     if not FRED_API_KEY:
@@ -277,30 +272,30 @@ if __name__ == "__main__":
         market_data = fetch_market_data(fred)
         
         if market_data:
-            new_record = {
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "growth_index": market_data['growth'],
-                "inflation_index": market_data['inflation'],
-                "liquidity_index": market_data['liquidity'],
-                "sentiment_index": market_data['sentiment'],
-                "leading_index": market_data['leading'],
-                
-                "z_pmi": market_data['z_pmi'],
-                "z_ratio": market_data['z_ratio'],
-                "z_t5yifr": market_data['z_t5yifr'],
-                "z_commodity": market_data['z_commodity'],
-                "net_liquidity_raw": market_data['net_liquidity_raw'],
-                
-                "score_momentum": market_data['score_momentum'],
-                "score_vix": market_data['score_vix'],
-                "score_putcall": market_data['score_putcall'],
-                "score_safehaven": market_data['score_safehaven'],
-                "score_junk": market_data['score_junk'],
-                
-                "z_coppergold": market_data['z_coppergold'],
-                "z_betavol": market_data['z_betavol'],
-                "z_yieldspread": market_data['z_yieldspread']
-            }
+            # Create record as a List (Array) to save space
+            # Order MUST match the migration logic and index.html parsing
+            new_record = [
+                datetime.now().strftime("%Y-%m-%d"), # 0
+                market_data['growth'],               # 1
+                market_data['inflation'],            # 2
+                market_data['liquidity'],            # 3
+                market_data['sentiment'],            # 4
+                market_data['leading'],              # 5
+                market_data['z_pmi'],                # 6
+                market_data['z_ratio'],              # 7
+                market_data['z_t5yifr'],             # 8
+                market_data['z_commodity'],          # 9
+                market_data['net_liquidity_raw'],    # 10
+                market_data['score_momentum'],       # 11
+                market_data['score_vix'],            # 12
+                market_data['score_putcall'],        # 13
+                market_data['score_safehaven'],      # 14
+                market_data['score_junk'],           # 15
+                market_data['z_coppergold'],         # 16
+                market_data['z_betavol'],            # 17
+                market_data['z_yieldspread']         # 18
+            ]
+            
             update_json_file(new_record)
         else:
             print("Failed to generate market data.")
