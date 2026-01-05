@@ -81,19 +81,6 @@ const MODAL_DATA = {
     ys: { title: "Z_Yield Spread", body: "<p>Yield Curve Spread (10Y-2Y). Inversion (negative value) warns of an impending recession.</p>" }
 };
 
-function openModal(key) {
-    const data = MODAL_DATA[key];
-    if (data) {
-        document.getElementById('modalTitle').innerHTML = data.title;
-        document.getElementById('modalBody').innerHTML = data.body;
-        document.getElementById('infoModal').style.display = 'flex';
-    }
-}
-
-function closeModal() {
-    document.getElementById('infoModal').style.display = 'none';
-}
-
 // --- Chart Logic ---
 async function createCharts() {
     try {
