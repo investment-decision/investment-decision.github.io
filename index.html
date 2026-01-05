@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         /* --- 1. Basic Settings --- */
         :root {
@@ -31,17 +32,23 @@
             color: var(--text-primary);
         }
 
-        h1, h2, h3 { margin: 0; }
-        
+        h1,
+        h2,
+        h3 {
+            margin: 0;
+        }
+
         .container {
             max-width: 1600px;
             margin: 0 auto;
         }
 
         .header {
-            margin-bottom: 40px; /* Increased from 20px */
+            margin-bottom: 40px;
+            /* Increased from 20px */
             padding: 0 10px;
         }
+
         .header h1 {
             font-size: 1.5rem;
             font-weight: 700;
@@ -60,7 +67,8 @@
             font-size: 0.9rem;
             font-weight: 600;
             border-radius: 8px;
-            margin-bottom: 50px; /* Increased from 30px */
+            margin-bottom: 50px;
+            /* Increased from 30px */
             border: 2px dashed #ccc;
             text-align: center;
         }
@@ -69,14 +77,17 @@
         .dashboard-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 30px; /* Increased from 20px */
-            margin-bottom: 50px; /* Increased from 30px */
+            gap: 30px;
+            /* Increased from 20px */
+            margin-bottom: 50px;
+            /* Increased from 30px */
         }
 
         .section-title {
             font-size: 1.1rem;
             color: var(--text-secondary);
-            margin-bottom: 20px; /* Increased from 10px */
+            margin-bottom: 20px;
+            /* Increased from 10px */
             padding-left: 10px;
             font-weight: 600;
             border-left: 4px solid #333;
@@ -88,13 +99,13 @@
             background: var(--card-bg);
             border-radius: 12px;
             padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             position: relative;
             display: flex;
             flex-direction: column;
             /* FIX: Use height: 100% to match grid row height, removed min-height to avoid lock-in */
-            height: 100%; 
-            min-width: 0; /* Crucial for Grid/Flex child shrinking */
+            min-width: 0;
+            /* Crucial for Grid/Flex child shrinking */
         }
 
         .card-header {
@@ -132,6 +143,7 @@
             justify-content: center;
             transition: background 0.2s;
         }
+
         .info-btn:hover {
             background: #e4e6eb;
             color: var(--text-primary);
@@ -140,7 +152,7 @@
         .chart-area {
             position: relative;
             /* FIX: Fixed height prevents Chart.js resize loops/stuck height */
-            height: 250px; 
+            height: 250px;
             width: 100%;
             overflow: hidden;
         }
@@ -162,9 +174,11 @@
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -177,13 +191,20 @@
             max-width: 500px;
             width: 90%;
             position: relative;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
             animation: slideUp 0.3s ease;
         }
 
         @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-close {
@@ -209,28 +230,38 @@
             line-height: 1.6;
             color: #444;
         }
-        .modal-body ul { padding-left: 20px; margin: 10px 0; }
-        .modal-body li { margin-bottom: 5px; }
+
+        .modal-body ul {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .modal-body li {
+            margin-bottom: 5px;
+        }
 
         /* --- Responsive --- */
         @media (max-width: 1200px) {
-            .dashboard-row { 
-                grid-template-columns: repeat(2, 1fr); 
+            .dashboard-row {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
+
         @media (max-width: 768px) {
-            .dashboard-row { 
+            .dashboard-row {
                 grid-template-columns: 1fr;
                 /* Force vertical gap on mobile */
                 gap: 20px;
-                row-gap: 20px; 
+                row-gap: 20px;
             }
+
             .container {
                 padding: 10px;
             }
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -238,16 +269,10 @@
             <h1>Market Regime Dashboard</h1>
         </div>
 
-        <!-- AdSense Position 1 -->
-        <div class="ad-banner">
-            Google AdSense Placeholder (Top)
-            <br><span style="font-weight:400; font-size:0.8em;">Responsive Display Ad Recommended</span>
-        </div>
-
         <!-- ROW 1: Main Indices -->
         <div class="section-title">Row 1: Main Market Indices</div>
         <div class="dashboard-row">
-            
+
             <!-- 1-1. Macro Regime -->
             <div class="chart-card">
                 <div class="card-header">
@@ -305,7 +330,7 @@
             </div>
         </div>
 
-        <!-- AdSense Position 2 -->
+        <!-- AdSense Position 1 -->
         <div class="ad-banner">
             Google AdSense Placeholder (Middle)
             <br><span style="font-weight:400; font-size:0.8em;">Responsive In-article or Display Ad</span>
@@ -314,7 +339,7 @@
         <!-- ROW 2: Macro Components (Z-Scores) -->
         <div class="section-title">Row 2: Macro Drivers (Time Series)</div>
         <div class="dashboard-row">
-            
+
             <!-- 2-1. Z_PMI -->
             <div class="chart-card">
                 <div class="card-header">
@@ -372,6 +397,13 @@
             </div>
         </div>
 
+
+        <!-- AdSense Position 2 -->
+        <div class="ad-banner">
+            Google AdSense Placeholder (Top)
+            <br><span style="font-weight:400; font-size:0.8em;">Responsive Display Ad Recommended</span>
+        </div>
+
         <!-- ROW 3: Sentiment Components (0-100) -->
         <div class="section-title">Row 3: Sentiment Components (0 = Fear, 100 = Greed)</div>
         <div class="dashboard-row">
@@ -403,21 +435,7 @@
                 </div>
             </div>
 
-            <!-- 3-3. Put/Call -->
-            <div class="chart-card">
-                <div class="card-header">
-                    <div>
-                        <div class="chart-title">Put/Call Score (Inv)</div>
-                        <div class="chart-subtitle">Option Market Sentiment</div>
-                    </div>
-                    <button class="info-btn" onclick="openModal('pc')">?</button>
-                </div>
-                <div class="chart-area">
-                    <canvas id="chartSentPC"></canvas>
-                </div>
-            </div>
-
-            <!-- 3-4. Safe Haven -->
+            <!-- 3-3. Safe Haven -->
             <div class="chart-card">
                 <div class="card-header">
                     <div>
@@ -430,12 +448,8 @@
                     <canvas id="chartSentSafe"></canvas>
                 </div>
             </div>
-        </div>
 
-        <!-- ROW 4: More Components (Sentiment & Leading) -->
-        <div class="section-title">Row 4: Sentiment (Junk) & Leading Components</div>
-        <div class="dashboard-row">
-            <!-- 4-1. Junk Spread -->
+            <!-- 3-4. Junk Spread -->
             <div class="chart-card">
                 <div class="card-header">
                     <div>
@@ -448,8 +462,19 @@
                     <canvas id="chartSentJunk"></canvas>
                 </div>
             </div>
+        </div>
 
-            <!-- 4-2. Copper/Gold -->
+
+        <!-- AdSense Position 3 -->
+        <div class="ad-banner">
+            Google AdSense Placeholder (Top)
+            <br><span style="font-weight:400; font-size:0.8em;">Responsive Display Ad Recommended</span>
+        </div>
+
+        <!-- ROW 4: More Components (Sentiment & Leading) -->
+        <div class="section-title">Row 4: Leading Components</div>
+        <div class="dashboard-row">
+            <!-- 4-1. Copper/Gold -->
             <div class="chart-card">
                 <div class="card-header">
                     <div>
@@ -463,7 +488,7 @@
                 </div>
             </div>
 
-            <!-- 4-3. Beta/Vol -->
+            <!-- 4-2. Beta/Vol -->
             <div class="chart-card">
                 <div class="card-header">
                     <div>
@@ -477,7 +502,7 @@
                 </div>
             </div>
 
-            <!-- 4-4. Yield Spread -->
+            <!-- 4-3. Yield Spread -->
             <div class="chart-card">
                 <div class="card-header">
                     <div>
@@ -490,7 +515,16 @@
                     <canvas id="chartLeadYS"></canvas>
                 </div>
             </div>
+
         </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <hr>
+            <p>&copy; 2025 Market Regime Dashboard. All rights reserved.</p>
+            <p style="font-size: 0.75rem; color: #999;">Disclaimer: This dashboard is for informational purposes
+                only and does not constitute financial advice. Data provided by public APIs and may be delayed.</p>
+        </footer>
     </div>
 
     <!-- Modal Template -->
@@ -508,13 +542,29 @@
             macro: {
                 title: "거시경제 국면 지수 (Macro Regime)",
                 body: `
-                    <p>경제 성장(Growth)과 물가(Inflation) 두 축을 기준으로 현재 경제 사계절을 진단합니다.</p>
-                    <ul>
-                        <li><strong>Reflation (회복):</strong> 성장↑ 물가↓ (주식 비중 확대)</li>
-                        <li><strong>Overheat (과열):</strong> 성장↑ 물가↑ (원자재/가치주)</li>
-                        <li><strong>Stagflation (스태그):</strong> 성장↓ 물가↑ (현금/금)</li>
-                        <li><strong>Deflation (수축):</strong> 성장↓ 물가↓ (채권/달러)</li>
-                    </ul>`
+                    <p>경제의 사계절을 4분면으로 시각화했습니다. 점의 위치에 따라 현재 국면을 진단합니다.</p>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.9em; text-align:center;">
+                        <div style="background:#fff3e0; padding:10px; border-radius:6px; border:1px solid #ffe0b2;">
+                            <strong style="color:#e65100;">Overheat (1사분면)</strong><br>
+                            <span style="font-size:0.8em; color:#666;">성장↑ 물가↑</span><br>
+                            <span style="color:#ef6c00; font-weight:600;">원자재/가치주</span>
+                        </div>
+                        <div style="background:#ffebee; padding:10px; border-radius:6px; border:1px solid #ffcdd2;">
+                            <strong style="color:#c62828;">Stagflation (2사분면)</strong><br>
+                            <span style="font-size:0.8em; color:#666;">성장↓ 물가↑</span><br>
+                            <span style="color:#d32f2f; font-weight:600;">현금/금</span>
+                        </div>
+                        <div style="background:#e3f2fd; padding:10px; border-radius:6px; border:1px solid #bbdefb;">
+                            <strong style="color:#1565c0;">Deflation (3사분면)</strong><br>
+                            <span style="font-size:0.8em; color:#666;">성장↓ 물가↓</span><br>
+                            <span style="color:#1976d2; font-weight:600;">채권/달러</span>
+                        </div>
+                        <div style="background:#e8f5e9; padding:10px; border-radius:6px; border:1px solid #c8e6c9;">
+                            <strong style="color:#2e7d32;">Reflation (4사분면)</strong><br>
+                            <span style="font-size:0.8em; color:#666;">성장↑ 물가↓</span><br>
+                            <span style="color:#388e3c; font-weight:600;">성장주/주식</span>
+                        </div>
+                    </div>`
             },
             liquidity: {
                 title: "글로벌 순유동성 지수 (Net Liquidity)",
@@ -572,7 +622,7 @@
 
         function openModal(key) {
             const data = MODAL_DATA[key];
-            if(data) {
+            if (data) {
                 document.getElementById('modalTitle').innerHTML = data.title;
                 document.getElementById('modalBody').innerHTML = data.body;
                 document.getElementById('infoModal').style.display = 'flex';
@@ -588,23 +638,34 @@
             try {
                 // Ensure the path is correct for your environment
                 const response = await fetch('./data/market_indices.json');
-                if (!response.ok) throw new Error("Network response was not ok");
-                const text = await response.text();
-                if (!text) return;
+                // console.log(response);
+                // console.log(response.json());
+                // if (!response.ok) throw new Error("Network response was not ok");
+                // const text = await response.text();
+                // if (!text) return;
 
-                const rawData = JSON.parse(text);
+                // const rawData = JSON.parse(text);
+                const rawData = await response.json();
+                console.log(rawData);
                 const labels = rawData.map(d => d.date);
-                
+
                 // 1. Line Chart Options (Time Series)
                 const lineOptions = {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { 
-                            display: true, 
-                            ticks: { maxTicksLimit: 6, font: { size: 10 } },
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: { size: 10 },
+                                callback: function (value) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.substring(0, 7); // Shows YYYY-MM
+                                }
+                            },
                             grid: { display: false }
                         },
                         y: { grid: { color: '#f0f0f0' } }
@@ -618,12 +679,12 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { 
-                            min: -3, max: 3, 
+                        x: {
+                            min: -3, max: 3,
                             grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
                         },
-                        y: { 
-                            min: -3, max: 3, 
+                        y: {
+                            min: -3, max: 3,
                             grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
                         }
                     }
@@ -635,9 +696,20 @@
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { display: true, ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { display: false } },
-                        y: { 
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: {
+                                maxTicksLimit: 6,
+                                font: { size: 10 },
+                                callback: function (value) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.substring(0, 7); // Shows YYYY-MM
+                                }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
                             min: 0, max: 100,
                             grid: { color: '#f0f0f0' },
                             ticks: { stepSize: 20 }
@@ -650,19 +722,76 @@
                 const trailLength = 60;
                 const recentData = rawData.slice(-trailLength);
                 const scatterData = recentData.map(d => ({ x: d.growth_index, y: d.inflation_index }));
-                
+
                 // NEW: Generate fading colors for the trail (Older = More transparent, Newer = More opaque)
                 const trailColors = scatterData.slice(0, -1).map((_, i, arr) => {
                     const opacity = 0.1 + (0.9 * (i / arr.length)); // Alpha from 0.1 to 1.0
                     return `rgba(100, 110, 120, ${opacity})`; // Slate grey-ish color
                 });
 
+                // Calculate trail dates
+                const trailStart = recentData[0].date;
+                if(recentData.length < 2) {
+                    console.error("Not enough data points for trail calculation.");
+                    return;
+                }
+                const trailEnd = recentData[recentData.length - 2].date;
+
+                // Plugin to draw quadrant labels on the background
+                const quadrantLabelsPlugin = {
+                    id: 'quadrantLabels',
+                    afterDraw: (chart) => {
+                        const { ctx, chartArea: { left, right, top, bottom, width, height }, scales: { x, y } } = chart;
+
+                        // Calculate center points for quadrants
+                        const midX = x.getPixelForValue(0);
+                        const midY = y.getPixelForValue(0);
+
+                        // Font settings
+                        ctx.save();
+                        ctx.font = 'bold 12px Inter';
+                        ctx.fillStyle = 'rgba(150, 150, 150, 0.4)'; // Subtle text color
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+
+                        // Calculate quarter positions for labels to be centered in their quadrants
+                        // Use mid-points between center axis and chart edges
+                        const q1x = (midX + right) / 2;
+                        const q1y = (top + midY) / 2;
+
+                        const q2x = (left + midX) / 2;
+                        const q2y = (top + midY) / 2;
+
+                        const q3x = (left + midX) / 2;
+                        const q3y = (midY + bottom) / 2;
+
+                        const q4x = (midX + right) / 2;
+                        const q4y = (midY + bottom) / 2;
+
+                        // Draw text
+                        // 1. Overheat (Top Right: G+, I+)
+                        ctx.fillText("OVERHEAT", q1x, q1y);
+
+                        // 2. Stagflation (Top Left: G-, I+)
+                        ctx.fillText("STAGFLATION", q2x, q2y);
+
+                        // 3. Deflation (Bottom Left: G-, I-)
+                        ctx.fillText("DEFLATION", q3x, q3y);
+
+                        // 4. Reflation (Bottom Right: G+, I-)
+                        ctx.fillText("REFLATION", q4x, q4y);
+
+                        ctx.restore();
+                    }
+                };
+
+
                 new Chart(document.getElementById('chartMacro'), {
                     type: 'scatter',
                     data: {
                         datasets: [
                             {
-                                label: 'Trail (60 Days)',
+                                label: `${trailStart} ~ ${trailEnd}`,
                                 data: scatterData.slice(0, -1),
                                 backgroundColor: trailColors, // Array of fading colors
                                 borderColor: trailColors,     // Matching borders
@@ -680,7 +809,8 @@
                             }
                         ]
                     },
-                    options: scatterOptions
+                    options: scatterOptions,
+                    plugins: [quadrantLabelsPlugin] // Add the custom plugin here
                 });
 
                 // --- Chart 2: Liquidity (Line) ---
@@ -688,9 +818,9 @@
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [{ 
-                            data: rawData.map(d => d.liquidity_index), 
-                            borderColor: '#af52de', borderWidth: 2, fill: false, tension: 0.3 
+                        datasets: [{
+                            data: rawData.map(d => d.liquidity_index),
+                            borderColor: '#af52de', borderWidth: 2, fill: false, tension: 0.3
                         }]
                     },
                     options: lineOptions
@@ -702,9 +832,9 @@
                     data: {
                         labels: labels,
                         datasets: [
-                            { 
-                                data: rawData.map(d => d.sentiment_index), 
-                                borderColor: '#ff9500', borderWidth: 2, fill: false, tension: 0.3 
+                            {
+                                data: rawData.map(d => d.sentiment_index),
+                                borderColor: '#ff9500', borderWidth: 2, fill: false, tension: 0.3
                             },
                             // Threshold Lines
                             {
@@ -725,9 +855,9 @@
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: [{ 
-                            data: rawData.map(d => d.leading_index), 
-                            borderColor: '#34c759', borderWidth: 2, fill: false, tension: 0.3 
+                        datasets: [{
+                            data: rawData.map(d => d.leading_index),
+                            borderColor: '#34c759', borderWidth: 2, fill: false, tension: 0.3
                         }]
                     },
                     options: lineOptions
@@ -739,9 +869,9 @@
                         type: 'line',
                         data: {
                             labels: labels,
-                            datasets: [{ 
-                                data: rawData.map(d => d[dataKey]), 
-                                borderColor: color, borderWidth: 1.5, fill: false, tension: 0.1 
+                            datasets: [{
+                                data: rawData.map(d => d[dataKey]),
+                                borderColor: color, borderWidth: 1.5, fill: false, tension: 0.1
                             }]
                         },
                         options: options
@@ -774,4 +904,5 @@
         createCharts();
     </script>
 </body>
+
 </html>
