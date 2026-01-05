@@ -5,15 +5,15 @@ const MODAL_DATA = {
         body: `
                     <p>Visualizes the four economic seasons based on Growth and Inflation. The current regime is determined by the dot's position.</p>
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.9em; text-align:center;">
-                        <div style="background:#fff3e0; padding:10px; border-radius:6px; border:1px solid #ffe0b2;">
-                            <strong style="color:#e65100;">Overheat (Q1)</strong><br>
-                            <span style="font-size:0.8em; color:#666;">Growth↑ Inflation↑</span><br>
-                            <span style="color:#ef6c00; font-weight:600;">Commodities/Value</span>
-                        </div>
                         <div style="background:#ffebee; padding:10px; border-radius:6px; border:1px solid #ffcdd2;">
                             <strong style="color:#c62828;">Stagflation (Q2)</strong><br>
                             <span style="font-size:0.8em; color:#666;">Growth↓ Inflation↑</span><br>
                             <span style="color:#d32f2f; font-weight:600;">Cash/Gold</span>
+                        </div>
+                        <div style="background:#fff3e0; padding:10px; border-radius:6px; border:1px solid #ffe0b2;">
+                            <strong style="color:#e65100;">Overheat (Q1)</strong><br>
+                            <span style="font-size:0.8em; color:#666;">Growth↑ Inflation↑</span><br>
+                            <span style="color:#ef6c00; font-weight:600;">Commodities/Value</span>
                         </div>
                         <div style="background:#e3f2fd; padding:10px; border-radius:6px; border:1px solid #bbdefb;">
                             <strong style="color:#1565c0;">Deflation (Q3)</strong><br>
