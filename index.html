@@ -214,10 +214,20 @@
 
         /* --- Responsive --- */
         @media (max-width: 1200px) {
-            .dashboard-row { grid-template-columns: repeat(2, 1fr); }
+            .dashboard-row { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
         }
         @media (max-width: 768px) {
-            .dashboard-row { grid-template-columns: 1fr; }
+            .dashboard-row { 
+                grid-template-columns: 1fr;
+                /* Force vertical gap on mobile */
+                gap: 20px;
+                row-gap: 20px; 
+            }
+            .container {
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -641,19 +651,32 @@
                 const recentData = rawData.slice(-trailLength);
                 const scatterData = recentData.map(d => ({ x: d.growth_index, y: d.inflation_index }));
                 
+                // NEW: Generate fading colors for the trail (Older = More transparent, Newer = More opaque)
+                const trailColors = scatterData.slice(0, -1).map((_, i, arr) => {
+                    const opacity = 0.1 + (0.9 * (i / arr.length)); // Alpha from 0.1 to 1.0
+                    return `rgba(100, 110, 120, ${opacity})`; // Slate grey-ish color
+                });
+
                 new Chart(document.getElementById('chartMacro'), {
                     type: 'scatter',
                     data: {
                         datasets: [
                             {
+                                label: 'Trail (60 Days)',
                                 data: scatterData.slice(0, -1),
-                                backgroundColor: 'rgba(200, 200, 200, 0.5)',
-                                pointRadius: 2
+                                backgroundColor: trailColors, // Array of fading colors
+                                borderColor: trailColors,     // Matching borders
+                                pointRadius: 3,               // Slightly larger to see fade effect
+                                pointHoverRadius: 5
                             },
                             {
+                                label: 'Current',
                                 data: [scatterData[scatterData.length - 1]],
                                 backgroundColor: '#e74c3c',
-                                pointRadius: 6
+                                borderColor: '#ffffff',
+                                borderWidth: 2,
+                                pointRadius: 7,
+                                pointHoverRadius: 9
                             }
                         ]
                     },
