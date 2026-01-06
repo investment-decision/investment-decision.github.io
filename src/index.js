@@ -80,6 +80,7 @@ async function createCharts() {
                         maxTicksLimit: 6,
                         font: { size: 10 },
                         callback: function (value) {
+                            const label = this.getLabelForValue(value);
                             // Only show label if it's the 1st of the month
                             if (label && label.endsWith('-01')) {
                                 return label.substring(0, 7); // Shows YYYY-MM
