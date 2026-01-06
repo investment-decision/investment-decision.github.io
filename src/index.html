@@ -138,7 +138,7 @@
         </div> -->
 
         <!-- ROW 2: Macro Components (Z-Scores) -->
-        <h2 class="section-title">Row 2: Macro Drivers (Time Series)</h2>
+        <h2 class="section-title">Row 2: Components of Macro Regime Composite</h2>
         <div class="dashboard-row">
 
             <!-- 2-1. Z_PMI -->
@@ -205,7 +205,7 @@
         </div> -->
 
         <!-- ROW 3: Sentiment Components (0-100) -->
-        <h2 class="section-title">Row 3: Sentiment Components (0 = Fear, 100 = Greed)</h2>
+        <h2 class="section-title">Row 3: Components of Sentiment Oscilllator (0 = Fear, 100 = Greed)</h2>
         <div class="dashboard-row">
             <!-- 3-1. Momentum -->
             <article class="chart-card">
@@ -225,7 +225,7 @@
             <article class="chart-card">
                 <div class="card-header">
                     <div>
-                        <div class="chart-title">Volatility Score (Inv)</div>
+                        <div class="chart-title">Volatility Score (Inversed)</div>
                         <div class="chart-subtitle">VIX Index</div>
                     </div>
                     <button class="info-btn" onclick="openModal('vix')">?</button>
@@ -271,7 +271,7 @@
         </div> -->
 
         <!-- ROW 4: More Components (Sentiment & Leading) -->
-        <h2 class="section-title">Row 4: Leading Components</h2>
+        <h2 class="section-title">Row 4: Components of Inter-Market Leading Indicator</h2>
         <div class="dashboard-row">
             <!-- 4-1. Copper/Gold -->
             <article class="chart-card">
@@ -368,12 +368,51 @@
             liquidity: {
                 title: "Global Net Liquidity Gauge",
                 body: `
-                    <p>Measures the net liquidity available in the market by subtracting liabilities (TGA, RRP) from the Fed's total assets.</p>
-                    <p><strong>Formula:</strong> Fed Assets - TGA - RRP</p>
-                    <ul>
-                        <li><strong>Rising:</strong> Increased liquidity, favoring risk assets (stocks, crypto).</li>
-                        <li><strong>Falling:</strong> Tightening liquidity, potential for market correction.</li>
-                    </ul>`
+                    <div style="text-align:center; margin-bottom:20px;">
+                        <p style="margin-bottom:15px; color:#555; font-size:0.95em;">
+                            Think of this as the <strong>"fuel tank"</strong> for the stock market. <br>
+                            It shows how much real cash is available for investors to buy assets.
+                        </p>
+                        
+                        <div style="background:#f8f9fa; padding:15px; border-radius:8px; border:1px solid #e9ecef; text-align:left; font-size:0.9em;">
+                            <div style="margin-bottom:8px;">
+                                <span style="color:#2980b9; font-weight:bold;">Fed Assets</span> (Money Printed)
+                            </div>
+                            <div style="margin-bottom:8px; padding-left:10px;">
+                                <span style="color:#c0392b; font-weight:bold;">- TGA</span> (Government's Checking Account)<br>
+                                <span style="font-size:0.8em; color:#666; margin-left:15px;">When Government saves money here, it leaves the market.</span>
+                            </div>
+                            <div style="margin-bottom:15px; padding-left:10px;">
+                                <span style="color:#c0392b; font-weight:bold;">- RRP</span> (Reverse Repo / Parked Cash)<br>
+                                <span style="font-size:0.8em; color:#666; margin-left:15px;">Cash banks park at the Fed overnight instead of investing.</span>
+                            </div>
+                            <div style="border-top:2px solid #ddd; padding-top:8px; text-align:center; font-weight:bold; color:#8e44ad; font-size:1.1em;">
+                                = NET LIQUIDITY
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; font-size:0.9em;">
+                        <div style="background:#e8f5e9; padding:15px; border-radius:12px; border:1px solid #c8e6c9; text-align:center; position:relative;">
+                            <div style="position:absolute; top:-10px; right:-10px; background:#fff; border:1px solid #c8e6c9; border-radius:50%; width:24px; height:24px; line-height:22px;">↗️</div>
+                            <div style="font-size:1.2em; font-weight:bold; color:#2e7d32; margin-bottom:5px;">Rising Trend</div>
+                            <div style="margin-bottom:8px;"><strong>Liquidity Injection</strong></div>
+                            <div style="font-size:0.85em; color:#555; line-height:1.4;">
+                                More money is flowing <strong>INTO</strong> the system.<br>
+                                <span style="color:#2e7d32;">Positive for Stocks & Crypto</span>
+                            </div>
+                        </div>
+                        
+                        <div style="background:#ffebee; padding:15px; border-radius:12px; border:1px solid #ffcdd2; text-align:center; position:relative;">
+                            <div style="position:absolute; top:-10px; right:-10px; background:#fff; border:1px solid #ffcdd2; border-radius:50%; width:24px; height:24px; line-height:22px;">↘️</div>
+                            <div style="font-size:1.2em; font-weight:bold; color:#c62828; margin-bottom:5px;">Falling Trend</div>
+                            <div style="margin-bottom:8px;"><strong>Liquidity Drain</strong></div>
+                            <div style="font-size:0.85em; color:#555; line-height:1.4;">
+                                Money is being <strong>PULLED OUT</strong>.<br>
+                                <span style="color:#c62828;">Caution / Defensive</span>
+                            </div>
+                        </div>
+                    </div>`
             },
             sentiment: {
                 title: "Composite Sentiment Oscillator",
