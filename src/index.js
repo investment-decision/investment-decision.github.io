@@ -14,6 +14,12 @@ async function createCharts() {
         // 11: score_momentum, 12: score_vix, 13: score_putcall, 14: score_safehaven, 15: score_junk
         // 16: z_coppergold, 17: z_betavol, 18: z_yieldspread
 
+        // Update "Last Updated" text
+        if (rawData.length > 0) {
+            const lastDate = rawData[rawData.length - 1][0]; // Last item, first element (date)
+            document.getElementById('last-updated').textContent = `Last updated: ${lastDate}`;
+        }
+
         const labels = rawData.map(d => d[0]);
 
         // 1. Line Chart Options (Time Series)
@@ -30,7 +36,11 @@ async function createCharts() {
                         font: { size: 10 },
                         callback: function (value) {
                             const label = this.getLabelForValue(value);
-                            return label.substring(0, 7); // Shows YYYY-MM
+                            // Only show label if it's the 1st of the month
+                            if (label && label.endsWith('-01')) {
+                                return label.substring(0, 7); // Shows YYYY-MM
+                            }
+                            return null;
                         }
                     },
                     grid: { display: false }
@@ -70,8 +80,11 @@ async function createCharts() {
                         maxTicksLimit: 6,
                         font: { size: 10 },
                         callback: function (value) {
-                            const label = this.getLabelForValue(value);
-                            return label.substring(0, 7); // Shows YYYY-MM
+                            // Only show label if it's the 1st of the month
+                            if (label && label.endsWith('-01')) {
+                                return label.substring(0, 7); // Shows YYYY-MM
+                            }
+                            return null;
                         }
                     },
                     grid: { display: false }
