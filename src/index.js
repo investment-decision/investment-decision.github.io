@@ -54,7 +54,25 @@ async function createCharts() {
         const scatterOptions = {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        // Show the date for the hovered point (instead of reusing the dataset label for every point)
+                        title: (items) => {
+                            const raw = items?.[0]?.raw;
+                            return raw?.date ?? '';
+                        },
+                        // Keep a compact value readout
+                        label: (item) => {
+                            const { x, y } = item.raw || {};
+                            const fx = (typeof x === 'number') ? x.toFixed(2) : x;
+                            const fy = (typeof y === 'number') ? y.toFixed(2) : y;
+                            return `Growth: ${fx}, Inflation: ${fy}`;
+                        }
+                    }
+                }
+            },
             scales: {
                 x: {
                     min: -3, max: 3,
@@ -102,7 +120,7 @@ async function createCharts() {
         // --- Chart 1: Macro Regime (Scatter) ---
         const trailLength = 60;
         const recentData = rawData.slice(-trailLength);
-        const scatterData = recentData.map(d => ({ x: d[1], y: d[2] })); // Growth(1), Inflation(2)
+        const scatterData = recentData.map(d => ({ x: d[1], y: d[2], date: d[0] })); // Growth(1), Inflation(2), Date(0)
 
         const trailColors = scatterData.slice(0, -1).map((_, i, arr) => {
             const opacity = 0.1 + (0.9 * (i / arr.length));
