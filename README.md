@@ -1,6 +1,5 @@
 # investment-decision.github.io
 
-
 my-market-dashboard/
 ├── .github/
 │   └── workflows/
