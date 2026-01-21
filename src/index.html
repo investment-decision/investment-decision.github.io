@@ -108,6 +108,10 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 20px;
         }
+        .about-stack {
+            display: flex;
+            flex-direction: column;
+        }
         .about-card {
             background: var(--card-bg);
             border-radius: 10px;
@@ -190,6 +194,7 @@
             <div class="top-nav">
                 <button class="nav-btn" id="btn-dashboard" type="button" onclick="showDashboard()">Dashboard</button>
                 <button class="nav-btn" id="btn-about" type="button" onclick="showAbout()">About</button>
+                <button class="nav-btn" id="btn-references" type="button" onclick="showReferences()">References</button>
             </div>
 
             <!-- Last Updated Text -->
@@ -454,7 +459,7 @@
 
         <main id="about-page" class="about-page" style="display: none;">
             <section class="about-hero">
-                <h2 class="about-title">MarketOwl.net</h2>
+                <h2 class="about-title">About MarketOwl.net</h2>
                 <p class="about-tagline">Signal vs. Noise: Quant macro regime analysis</p>
             </section>
 
@@ -468,7 +473,7 @@
 
             <section class="about-section">
                 <h3 class="about-section-heading">Core Methodology</h3>
-                <div class="about-grid">
+                <div class="about-grid about-stack">
                     <article class="about-card">
                         <h4>1. True Liquidity Tracking</h4>
                         <p>
@@ -492,12 +497,90 @@
                             Data arrives in different units. MarketOwl converts everything into <span class="about-highlight">standardized Z-Scores</span>, so a 0.1% rate move and a $10 oil move are comparable, revealing structural shifts.
                         </p>
                     </article>
+                </div>
+            </section>
 
+            <footer class="footer">
+                <p>&copy; 2026 MarketOwl.net. All rights reserved.</p>
+                <p style="font-size: 0.75rem; color: #999;">Disclaimer: This dashboard is for informational purposes only and does not constitute financial advice. Data provided by public APIs and may be delayed.</p>
+            </footer>
+        </main>
+
+        <!-- References page -->
+        <main id="references-page" class="about-page" style="display: none;">
+            <section class="about-hero">
+                <h2 class="about-title">References</h2>
+                <p class="about-tagline">Trusted sources we monitor for macro, trade, and policy signals</p>
+            </section>
+
+            <section class="about-section">
+                <h3 class="about-section-heading">International Organizations & Policy</h3>
+                <div class="about-grid">
                     <article class="about-card">
-                        <h4>4. Systematic Architecture</h4>
-                        <p>
-                            This isn’t a loose list. Data flows through a hierarchy—<span class="about-highlight">[Composite → Drivers → Sentiment → Leading]</span>—to deliver coherent, actionable investment insights.
-                        </p>
+                        <h4><a href="https://www.imf.org" target="_blank" rel="noopener">IMF</a></h4>
+                        <p>Global financial stability, balance of payments, crisis prevention. Best for the “World Economic Outlook.”</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://www.worldbank.org" target="_blank" rel="noopener">The World Bank</a></h4>
+                        <p>Data and analysis on global development, poverty reduction, and economic prospects for developing nations.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://www.oecd.org" target="_blank" rel="noopener">OECD</a></h4>
+                        <p>Comparative data and policy analysis for advanced economies—tax, education, trade, and more.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://www.wto.org" target="_blank" rel="noopener">WTO</a></h4>
+                        <p>Primary source for international trade laws, tariff data, and dispute settlements.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="about-section">
+                <h3 class="about-section-heading">Central Banking & Data</h3>
+                <div class="about-grid">
+                    <article class="about-card">
+                        <h4><a href="https://www.bis.org" target="_blank" rel="noopener">BIS</a></h4>
+                        <p>The “central bank for central banks.” Deep technical analysis on global banking flows and financial stability.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://fred.stlouisfed.org" target="_blank" rel="noopener">FRED</a></h4>
+                        <p>User-friendly aggregator for US and global economic time-series data (GDP, inflation, rates).</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="about-section">
+                <h3 class="about-section-heading">Trade & Complexity</h3>
+                <div class="about-grid">
+                    <article class="about-card">
+                        <h4><a href="https://oec.world" target="_blank" rel="noopener">OEC</a></h4>
+                        <p>Visualizes global trade networks to reveal economic complexity and export structures.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://comtradeplus.un.org" target="_blank" rel="noopener">UN Comtrade</a></h4>
+                        <p>The official repository for detailed international trade statistics.</p>
+                    </article>
+                </div>
+            </section>
+
+            <section class="about-section">
+                <h3 class="about-section-heading">News, Analysis & Visuals</h3>
+                <div class="about-grid">
+                    <article class="about-card">
+                        <h4><a href="https://www.project-syndicate.org" target="_blank" rel="noopener">Project Syndicate</a></h4>
+                        <p>Op-eds and commentary from Nobel laureates, world leaders, and top economists.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://www.economist.com" target="_blank" rel="noopener">The Economist</a></h4>
+                        <p>Weekly coverage of global politics and business with an economics lens.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://tradingeconomics.com" target="_blank" rel="noopener">Trading Economics</a></h4>
+                        <p>Aggregates official data into easy-to-read calendars and charts for nearly every country.</p>
+                    </article>
+                    <article class="about-card">
+                        <h4><a href="https://ourworldindata.org" target="_blank" rel="noopener">Our World in Data</a></h4>
+                        <p>Long-term historical data visualizations on global living standards and progress.</p>
                     </article>
                 </div>
             </section>
@@ -658,16 +741,20 @@
         function setNavActive(active) {
             const dashBtn = document.getElementById('btn-dashboard');
             const aboutBtn = document.getElementById('btn-about');
-            if (!dashBtn || !aboutBtn) return;
+            const refBtn = document.getElementById('btn-references');
+            if (!dashBtn || !aboutBtn || !refBtn) return;
             dashBtn.classList.toggle('nav-btn-active', active === 'dashboard');
             aboutBtn.classList.toggle('nav-btn-active', active === 'about');
+            refBtn.classList.toggle('nav-btn-active', active === 'references');
         }
 
         function showDashboard() {
             const dash = document.getElementById('dashboard-page');
             const about = document.getElementById('about-page');
+            const refs = document.getElementById('references-page');
             if (dash) dash.style.display = '';
             if (about) about.style.display = 'none';
+            if (refs) refs.style.display = 'none';
             setNavActive('dashboard');
             document.title = 'Market Owl | Wise Market Regime Analysis';
         }
@@ -675,10 +762,23 @@
         function showAbout() {
             const dash = document.getElementById('dashboard-page');
             const about = document.getElementById('about-page');
+            const refs = document.getElementById('references-page');
             if (dash) dash.style.display = 'none';
             if (about) about.style.display = '';
+            if (refs) refs.style.display = 'none';
             setNavActive('about');
             document.title = 'About MarketOwl.net';
+        }
+
+        function showReferences() {
+            const dash = document.getElementById('dashboard-page');
+            const about = document.getElementById('about-page');
+            const refs = document.getElementById('references-page');
+            if (dash) dash.style.display = 'none';
+            if (about) about.style.display = 'none';
+            if (refs) refs.style.display = '';
+            setNavActive('references');
+            document.title = 'References | MarketOwl.net';
         }
 
         // Initialize view
