@@ -54,9 +54,18 @@ async function createCharts() {
         const scatterOptions = {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: {
+                mode: 'point',
+                intersect: true
+            },
             plugins: {
                 legend: { display: false },
                 tooltip: {
+                    // Only show one tooltip item at a time
+                    filter: function(tooltipItem, index) {
+                        // Only show the first tooltip item (closest point)
+                        return index === 0;
+                    },
                     callbacks: {
                         // Show the date for the hovered point (instead of reusing the dataset label for every point)
                         title: (items) => {
