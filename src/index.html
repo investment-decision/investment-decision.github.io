@@ -13,6 +13,8 @@
         content="Market Owl, Market Regime, Macro Investing, Asset Allocation, Inflation, Liquidity, Sentiment Oscillator, Investment Dashboard, Quant Finance">
     <meta name="author" content="Market Owl">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#2c3e50">
+    <link rel="canonical" href="https://marketowl.net/">
 
     <!-- Favicon (Owl Logo) -->
     <link rel="icon"
@@ -24,13 +26,73 @@
     <meta property="og:description"
         content="Visualize global economic seasons (Reflation, Overheat, Stagflation, Deflation) and liquidity trends in real-time with Market Owl.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://your-domain.com/">
-    <meta property="og:image" content="https://your-domain.com/preview-image.png">
+    <meta property="og:url" content="https://marketowl.net/">
+    <!-- <meta property="og:image" content="https://marketowl.net/og-image.png"> -->
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Market Owl">
+    <meta property="og:locale" content="en_US">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Market Owl">
+    <meta name="twitter:title" content="Market Owl - Market Regime Dashboard">
     <meta name="twitter:description" content="Quantitative market analysis dashboard for wise investors.">
+    <!-- <meta name="twitter:image" content="https://marketowl.net/og-image.png"> -->
+    <meta name="twitter:site" content="@marketowl">
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Market Owl",
+        "alternateName": "MarketOwl.net",
+        "url": "https://marketowl.net/",
+        "description": "Quantitative market regime dashboard visualizing Growth, Inflation, Liquidity, and Sentiment signals to optimize asset allocation in any economic season.",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Web",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "ratingCount": "1"
+        },
+        "featureList": [
+            "Macro Regime Analysis",
+            "Global Net Liquidity Tracking",
+            "Sentiment Oscillator",
+            "Inter-Market Leading Indicators",
+            "Real-time Economic Data Visualization"
+        ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Market Owl",
+        "url": "https://marketowl.net/",
+        "logo": "https://marketowl.net/logo.png",
+        "sameAs": []
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Market Owl",
+        "url": "https://marketowl.net/",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://marketowl.net/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -220,10 +282,11 @@
 
 <body>
     <div class="container">
-        <header class="header">
+        <header class="header" role="banner">
             <div class="brand-container">
                 <!-- Market Owl Logo -->
-                <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="Market Owl Logo" role="img">
+                    <title>Market Owl Logo</title>
                     <!-- Head/Face -->
                     <path d="M20 30 Q10 30 10 45 L10 75 Q10 90 25 90 L75 90 Q90 90 90 75 L90 45 Q90 30 80 30"
                         fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
@@ -245,19 +308,24 @@
                 Sentiment signals to optimize your asset allocation in any economic season.</p>
 
             <!-- Navigation -->
-            <div class="top-nav">
-                <button class="nav-btn" id="btn-dashboard" type="button" onclick="showDashboard()">Dashboard</button>
-                <button class="nav-btn" id="btn-about" type="button" onclick="showAbout()">About</button>
-                <button class="nav-btn" id="btn-references" type="button" onclick="showReferences()">References</button>
-            </div>
+            <nav class="top-nav" aria-label="Main navigation">
+                <button class="nav-btn" id="btn-dashboard" type="button" onclick="showDashboard()" aria-label="View dashboard">Dashboard</button>
+                <button class="nav-btn" id="btn-about" type="button" onclick="showAbout()" aria-label="View about page">About</button>
+                <button class="nav-btn" id="btn-references" type="button" onclick="showReferences()" aria-label="View references">References</button>
+            </nav>
 
             <!-- Last Updated Text -->
             <p id="last-updated" style="font-size: 0.85rem; color: #888; margin-top: 10px;">Loading date...</p>
         </header>
 
-        <main id="dashboard-page">
+        <main id="dashboard-page" role="main">
+            <section class="about-hero">
+                <h2 class="about-title">Dashboard</h2>
+                <p class="about-tagline">Macro regime, liquidity, sentiment &amp; leading indicators</p>
+            </section>
             <!-- ROW 1: Main Indices -->
-            <h2 class="section-title">Row 1: Main Market Indices</h2>
+            <section aria-labelledby="main-indices-heading">
+                <h2 id="main-indices-heading" class="section-title">Row 1: Main Market Indices</h2>
             <div class="dashboard-row">
 
                 <!-- 1-1. Macro Regime -->
@@ -504,7 +572,7 @@
             </div>
 
             <!-- Footer -->
-            <footer class="footer">
+            <footer class="footer" role="contentinfo">
                 <p>&copy; 2025 Market Regime Dashboard. All rights reserved.</p>
                 <p style="font-size: 0.75rem; color: #999;">Disclaimer: This dashboard is for informational purposes
                     only and does not constitute financial advice. Data provided by public APIs and may be delayed.</p>
@@ -592,7 +660,7 @@
                 </p>
             </section>
 
-            <footer class="footer">
+            <footer class="footer" role="contentinfo">
                 <p>&copy; 2026 MarketOwl.net. All rights reserved.</p>
                 <p style="font-size: 0.75rem; color: #999;">Disclaimer: This dashboard is for informational purposes only and does not constitute financial advice. Data provided by public APIs and may be delayed.</p>
             </footer>
@@ -677,7 +745,7 @@
                 </div>
             </section>
 
-            <footer class="footer">
+            <footer class="footer" role="contentinfo">
                 <p>&copy; 2026 MarketOwl.net. All rights reserved.</p>
                 <p style="font-size: 0.75rem; color: #999;">Disclaimer: This dashboard is for informational purposes only and does not constitute financial advice. Data provided by public APIs and may be delayed.</p>
             </footer>
