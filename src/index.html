@@ -156,8 +156,62 @@
             color: var(--text-secondary);
             margin: 0 0 16px;
         }
+        
+        /* Feature Grid */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            color: var(--accent-liquidity);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* Formula Box */
+        .formula-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: var(--brand-color);
+            margin: 2rem 0;
+        }
+
+        blockquote {
+            border-left: 4px solid var(--accent-liquidity);
+            background: var(--card-bg);
+            margin: 1.5rem 0;
+            padding: 1rem 1.5rem;
+            font-style: italic;
+            color: var(--text-primary);
+        }
+        
         @media (max-width: 768px) {
             .about-grid {
+                grid-template-columns: 1fr;
+            }
+            .feature-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -464,40 +518,78 @@
             </section>
 
             <section class="about-section">
-                <h3 class="about-section-heading">Our Mission</h3>
+                <h3 class="about-section-heading">Why We Built This</h3>
                 <p>
-                    Modern markets are driven less by single-company fundamentals and more by macro liquidity and sentiment.
-                    <span class="about-highlight">MarketOwl.net</span> strips away headline noise and quantitatively analyzes four pillars—Growth, Inflation, Liquidity, and Sentiment—to power a top-down decision-support system.
+                    The financial markets of the 21st century have undergone a fundamental shift. We have moved from an era driven by individual corporate fundamentals to a <strong>"Macro-Driven Market"</strong> dominated by global liquidity, central bank policies, and collective psychology.
                 </p>
+                <p>
+                    The market collapse of 2022 proved that traditional "Static Asset Allocation"—like the 60/40 portfolio—is no longer a safe haven. In periods of soaring inflation, stocks and bonds can fall simultaneously, erasing the benefits of diversification.
+                </p>
+                <p>
+                    Modern investors require a <strong>Dynamic Asset Allocation</strong> system capable of reading the massive "Regimes" of the market, rather than just reacting to price movements.
+                </p>        
             </section>
 
             <section class="about-section">
-                <h3 class="about-section-heading">Core Methodology</h3>
-                <div class="about-grid about-stack">
-                    <article class="about-card">
-                        <h4>1. True Liquidity Tracking</h4>
+                <h3 class="about-section-heading">Our Philosophy: Signal vs. Noise</h3>
+                <p>
+                    Daily news headlines and temporary price fluctuations are "Noise." True returns come from the ability to filter this noise and capture the economic <strong>"Signal."</strong>
+                </p>
+                <blockquote>
+                    "MarketOwl acts as a compass, identifying the current 'Season' of the market. Once you know the season, you know how to dress (allocate) your portfolio."
+                </blockquote>
+            </section>
+
+            <section class="about-section">
+                <h3 class="about-section-heading">The 4 Pillars of MarketOwl</h3>
+                <p>We quantitatively analyze the four core engines that drive the global economy.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <h3>1. Macro Regime</h3>
                         <p>
-                            We avoid the common mistake of using total Fed assets alone. We track <span class="about-highlight">Net Liquidity</span> supplied to markets after factoring in the Treasury General Account (TGA) and Reverse Repo (RRP).
+                            By tracking the rate of change in <strong>Growth</strong> and <strong>Inflation</strong>, we diagnose the market into four quadrants: <strong>Goldilocks, Reflation, Stagflation, and Deflation</strong>. Identifying the current regime is the first step in selecting the optimal asset class.
                         </p>
-                        <div class="about-formula">
+                    </div>
+        
+                    <div class="feature-card">
+                        <span class="feature-icon">💧</span>
+                        <h3>2. True Liquidity</h3>
+                        <p>
+                            We go beyond simple Fed Assets. We track the <strong>Net Liquidity</strong> actually available in the market by accounting for the Treasury General Account (TGA) and Reverse Repo (RRP) operations.
+                        </p>
+                        <div class="formula-box" style="font-size: 0.8rem; padding: 0.5rem;">
                             Net Liquidity = Fed Assets - TGA - RRP
                         </div>
-                    </article>
-
-                    <article class="about-card">
-                        <h4>2. Market Regime Theory</h4>
+                    </div>
+        
+                    <div class="feature-card">
+                        <span class="feature-icon">🧠</span>
+                        <h3>3. Sentiment</h3>
                         <p>
-                            We map the market’s “four seasons.” Changes in growth and inflation classify regimes into <span class="about-highlight">Goldilocks, Reflation, Stagflation, and Deflation</span>, helping identify which asset classes are advantaged now.
+                            We measure market greed and fear. By synthesizing metrics like the Put/Call Ratio and Junk Bond Spreads, we identify <strong>Contrarian Investing</strong> opportunities. We help you spot opportunity when the crowd is paralyzed by fear.
                         </p>
-                    </article>
-
-                    <article class="about-card">
-                        <h4>3. Z-Score Normalization</h4>
+                    </div>
+        
+                    <div class="feature-card">
+                        <span class="feature-icon">🔮</span>
+                        <h3>4. Leading Indicators</h3>
                         <p>
-                            Data arrives in different units. MarketOwl converts everything into <span class="about-highlight">standardized Z-Scores</span>, so a 0.1% rate move and a $10 oil move are comparable, revealing structural shifts.
+                            We aim to forecast, not just report. Using the <strong>Copper/Gold Ratio</strong> and the <strong>Yield Curve</strong>, our system detects signs of recession or recovery before they are reflected in the stock market.
                         </p>
-                    </article>
+                    </div>
                 </div>
+            </section>
+
+            <section class="about-section">
+                <h3 class="about-section-heading">Technical Edge: Normalized Data (Z-Score)</h3>
+                <p>
+                    How do you compare economic indicators with different units (%, $, points)? MarketOwl normalizes all data into <strong>Z-Scores</strong>.
+                </p>
+                <p>
+                    This allows us to compare a 0.1% change in interest rates directly with a $10 change in oil prices on a standardized scale. We instantly detect <strong>Structural Breaks</strong> when data moves beyond ±2 standard deviations from the mean.
+                </p>
             </section>
 
             <footer class="footer">
