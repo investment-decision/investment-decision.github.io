@@ -50,50 +50,6 @@ async function createCharts() {
             elements: { point: { radius: 0, hoverRadius: 4 } }
         };
 
-        // 2. Macro Regime Options (Scatter, Fixed Scale)
-        const scatterOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                mode: 'point',
-                intersect: true
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    // Only show one tooltip item at a time
-                    filter: function(tooltipItem, index) {
-                        // Only show the first tooltip item (closest point)
-                        return index === 0;
-                    },
-                    callbacks: {
-                        // Show the date for the hovered point (instead of reusing the dataset label for every point)
-                        title: (items) => {
-                            const raw = items?.[0]?.raw;
-                            return raw?.date ?? '';
-                        },
-                        // Keep a compact value readout
-                        label: (item) => {
-                            const { x, y } = item.raw || {};
-                            const fx = (typeof x === 'number') ? x.toFixed(2) : x;
-                            const fy = (typeof y === 'number') ? y.toFixed(2) : y;
-                            return `Growth: ${fx}, Inflation: ${fy}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    min: -3, max: 3,
-                    grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
-                },
-                y: {
-                    min: -3, max: 3,
-                    grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
-                }
-            }
-        };
-
         // 3. Sentiment Options (Fixed 0-100)
         const sentimentOptions = {
             responsive: true,
@@ -130,6 +86,57 @@ async function createCharts() {
         const trailLength = 60;
         const recentData = rawData.slice(-trailLength);
         const scatterData = recentData.map(d => ({ x: d[1], y: d[2], date: d[0] })); // Growth(1), Inflation(2), Date(0)
+
+        // Calculate dynamic scale based on data
+        const allXValues = scatterData.map(d => Math.abs(d.x));
+        const allYValues = scatterData.map(d => Math.abs(d.y));
+        const maxAbsValue = Math.max(...allXValues, ...allYValues);
+        // Round up to nearest 0.5
+        const scaleMax = Math.ceil(maxAbsValue * 2) / 2;
+
+        // 2. Macro Regime Options (Scatter, Dynamic Scale)
+        const scatterOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'point',
+                intersect: true
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    // Only show one tooltip item at a time
+                    filter: function(tooltipItem, index) {
+                        // Only show the first tooltip item (closest point)
+                        return index === 0;
+                    },
+                    callbacks: {
+                        // Show the date for the hovered point (instead of reusing the dataset label for every point)
+                        title: (items) => {
+                            const raw = items?.[0]?.raw;
+                            return raw?.date ?? '';
+                        },
+                        // Keep a compact value readout
+                        label: (item) => {
+                            const { x, y } = item.raw || {};
+                            const fx = (typeof x === 'number') ? x.toFixed(2) : x;
+                            const fy = (typeof y === 'number') ? y.toFixed(2) : y;
+                            return `Growth: ${fx}, Inflation: ${fy}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    min: -scaleMax, max: scaleMax,
+                    grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
+                },
+                y: {
+                    min: -scaleMax, max: scaleMax,
+                    grid: { color: (ctx) => ctx.tick.value === 0 ? '#333' : '#eee', lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1 }
+                }
+            }
+        };
 
         const trailColors = scatterData.slice(0, -1).map((_, i, arr) => {
             const opacity = 0.1 + (0.9 * (i / arr.length));
