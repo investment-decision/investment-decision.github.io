@@ -299,11 +299,17 @@ const navigateTo = url => {
 };
 
 const handleLocation = async () => {
-    const path = location.pathname;
+    let path = location.pathname;
 
-    // Normalize path (handle trailing slashes or empty)
-    // Simple route map
-    let route = 'dashboard';
+    // Normalize path: Remove trailing slash if present (and not just root)
+    if (path.length > 1 && path.endsWith('/')) {
+        path = path.slice(0, -1);
+    }
+    // Case insensitive
+    path = path.toLowerCase();
+
+    // Route map
+    let route = 'dashboard'; // Default
     if (path === '/about') route = 'about';
     if (path === '/references') route = 'references';
 
