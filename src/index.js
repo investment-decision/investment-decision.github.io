@@ -2,7 +2,7 @@
 async function createCharts() {
     try {
         // Ensure the path is correct for your environment
-        const response = await fetch('./data/market_indices.json');
+        const response = await fetch('/data/market_indices.json');
         if (!response.ok) throw new Error("Network response was not ok");
         const rawData = await response.json();
 
@@ -106,7 +106,7 @@ async function createCharts() {
                 legend: { display: false },
                 tooltip: {
                     // Only show one tooltip item at a time
-                    filter: function(tooltipItem, index) {
+                    filter: function (tooltipItem, index) {
                         // Only show the first tooltip item (closest point)
                         return index === 0;
                     },
@@ -291,9 +291,75 @@ async function createCharts() {
     }
 }
 
-// Fix: Ensure DOM is fully loaded before initializing charts
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', createCharts);
-} else {
+// --- Router & Navigation Logic ---
+
+const navigateTo = url => {
+    history.pushState(null, null, url);
+    handleLocation();
+};
+
+const handleLocation = async () => {
+    const path = location.pathname;
+
+    // Normalize path (handle trailing slashes or empty)
+    // Simple route map
+    let route = 'dashboard';
+    if (path === '/about') route = 'about';
+    if (path === '/references') route = 'references';
+
+    // Show/Hide Sections
+    const dashboardPage = document.getElementById('dashboard-page');
+    const aboutPage = document.getElementById('about-page');
+    const referencesPage = document.getElementById('references-page');
+
+    if (dashboardPage) dashboardPage.style.display = (route === 'dashboard') ? '' : 'none';
+    if (aboutPage) aboutPage.style.display = (route === 'about') ? '' : 'none';
+    if (referencesPage) referencesPage.style.display = (route === 'references') ? '' : 'none';
+
+    // Update Nav State
+    const btnDashboard = document.getElementById('btn-dashboard');
+    const btnAbout = document.getElementById('btn-about');
+    const btnReferences = document.getElementById('btn-references');
+
+    if (btnDashboard) btnDashboard.classList.toggle('nav-btn-active', route === 'dashboard');
+    if (btnAbout) btnAbout.classList.toggle('nav-btn-active', route === 'about');
+    if (btnReferences) btnReferences.classList.toggle('nav-btn-active', route === 'references');
+
+    // Update Title & Meta Description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (route === 'dashboard') {
+        document.title = "Market Owl | Wise Market Regime Analysis";
+        if (metaDesc) metaDesc.content = "Market Owl: Quantitative market regime dashboard visualizing Growth, Inflation, Liquidity, and Sentiment. See through the noise with data-driven insights.";
+    }
+    if (route === 'about') {
+        document.title = "About MarketOwl.net";
+        if (metaDesc) metaDesc.content = "Learn about Market Owl's quantitative methodology: How we track Global Net Liquidity, identify Market Regimes (Reflation vs Stagflation), and forecast trends.";
+    }
+    if (route === 'references') {
+        document.title = "References | MarketOwl.net";
+        if (metaDesc) metaDesc.content = "Trusted data sources and references used by Market Owl, including IMF, World Bank, FRED, and BIS data for macro-economic analysis.";
+    }
+
+    // If dashboard is shown and charts technically need resize or init (usually Chart.js handles resize fine if canvas exists)
+    // We initialized charts once on load.
+};
+
+// Handle Browser Back/Forward
+window.addEventListener("popstate", handleLocation);
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Intercept navigation links
+    document.body.addEventListener('click', e => {
+        if (e.target.matches('[data-link]')) {
+            e.preventDefault();
+            navigateTo(e.target.href);
+        }
+    });
+
+    // 2. Initial Route
+    handleLocation();
+
+    // 3. Initialize Charts (Only once)
     createCharts();
-}
+});
