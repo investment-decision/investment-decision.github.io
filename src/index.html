@@ -921,12 +921,12 @@
                 body: `<p>The relative performance of Cyclical vs. Defensive stocks. Reflects real-time economic growth expectations from market participants.</p>`
             },
             t5yifr: {
-                title: "Z_T5YIFR (5Y Inflation Exp)",
-                body: `<p>The market's expectation for inflation over the 5-year period beginning 5 years from today. Filters out short-term oil price noise.</p>`
+                title: "Z_T5YIFR (Inflation Momentum)",
+                body: `<p>Z-Score of the <strong>1-Year Rate of Change</strong> of the 5-Year Forward Inflation Expectation. Captures the <em>momentum</em> of inflation expectations rather than just the absolute level.</p>`
             },
             commodity: {
-                title: "Z_Commodity (Broad Index)",
-                body: `<p>Broad commodity index (Energy, Metals, Agriculture). A leading indicator for consumer price inflation (CPI).</p>`
+                title: "Z_Commodity (Inflation Momentum)",
+                body: `<p>Z-Score of the <strong>1-Year Rate of Change</strong> of the Invesco DB Commodity Index. Captures the <em>momentum</em> of commodity prices (inflationary pressure).</p>`
             },
             mom: { title: "Momentum Score", body: "<p>Distance between current price and the 125-day moving average. Higher values indicate Greed.</p>" },
             vix: { title: "VIX Score", body: "<p>Volatility Index. Higher values indicate Fear (resulting in a lower score).</p>" },

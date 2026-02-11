@@ -146,8 +146,16 @@ def fetch_market_data(fred):
 
     df['Z_PMI'] = get_z_score(df['PMI'], Z_SCORE_WINDOW)
     df['Z_Ratio'] = get_z_score(df['Cyc_Def_Ratio'], Z_SCORE_WINDOW)
-    df['Z_T5YIFR'] = get_z_score(df['T5YIFR'], Z_SCORE_WINDOW)
-    df['Z_Commodity'] = get_z_score(df['DBC'], Z_SCORE_WINDOW)
+    
+    # --- Inflation: Use Rate of Change (RoC) to capture momentum ---
+    # Calculate 1-Year RoC (252 trading days)
+    df['T5YIFR_RoC'] = df['T5YIFR'].pct_change(periods=252)
+    df['Commodity_RoC'] = df['DBC'].pct_change(periods=252)
+    
+    # Normalize the RoC (not the absolute level)
+    df['Z_T5YIFR'] = get_z_score(df['T5YIFR_RoC'], Z_SCORE_WINDOW)
+    df['Z_Commodity'] = get_z_score(df['Commodity_RoC'], Z_SCORE_WINDOW)
+    
     df['Z_Liquidity'] = get_z_score(df['Net_Liquidity_Raw'], Z_SCORE_WINDOW)
     
     df['Z_CopperGold'] = get_z_score(df['Lead_CopperGold_Raw'], Z_SCORE_WINDOW)
