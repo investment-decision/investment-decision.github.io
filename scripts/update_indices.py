@@ -10,6 +10,9 @@ FRED_API_KEY = os.environ.get('FRED_API_KEY')
 DATA_PATH = 'data/market_indices.json'
 Z_SCORE_WINDOW = 252  # 1 year for Z-Scores
 SENTIMENT_WINDOW = 504 # 2 years for Min-Max Scaling (Sentiment)
+INFLATION_ROC_PERIOD = 63  # 1 quarter for Inflation Rate-of-Change (was 252/1yr — too slow to react)
+EMA_SPAN = 10  # EMA smoothing span applied to final Growth/Inflation composites
+REGIME_TRANSITION_DAYS = 3  # consecutive days required before a regime label officially flips
 
 def get_z_score(series, window):
     """Calculate Z-Score using rolling mean and std"""
@@ -17,6 +20,53 @@ def get_z_score(series, window):
     roll_std = series.rolling(window=window).std()
     z_score = (series - roll_mean) / roll_std
     return z_score
+
+def get_ema(series, span):
+    """Calculate Exponential Moving Average (EMA) smoothing"""
+    return series.ewm(span=span, adjust=False).mean()
+
+def get_raw_quadrant(growth, inflation):
+    """Classify a single (growth, inflation) point into a regime quadrant.
+    Naming matches the `quadrantLabelsPlugin` labels in src/index.js.
+    """
+    if growth >= 0 and inflation >= 0:
+        return "OVERHEAT"
+    if growth < 0 and inflation >= 0:
+        return "STAGFLATION"
+    if growth < 0 and inflation < 0:
+        return "DEFLATION"
+    return "REFLATION"
+
+def get_regime_label(growth_series, inflation_series, buffer_days=REGIME_TRANSITION_DAYS):
+    """Apply a transition buffer: the official regime label only flips to a
+    new quadrant once that quadrant has been the raw (unbuffered) reading
+    for `buffer_days` consecutive days (Phase 2, T2.4). Returns a Series of
+    the buffered regime label, aligned to the input index.
+    """
+    raw = pd.Series(
+        [get_raw_quadrant(g, i) for g, i in zip(growth_series, inflation_series)],
+        index=growth_series.index
+    )
+
+    buffered = raw.copy()
+    current_label = raw.iloc[0] if len(raw) else None
+    streak_label = current_label
+    streak_len = 0
+
+    for idx in raw.index:
+        val = raw.loc[idx]
+        if val == streak_label:
+            streak_len += 1
+        else:
+            streak_label = val
+            streak_len = 1
+
+        if streak_len >= buffer_days:
+            current_label = streak_label
+
+        buffered.loc[idx] = current_label
+
+    return buffered
 
 def get_min_max_score(series, window, inverse=False):
     """
@@ -59,10 +109,20 @@ def fetch_market_data(fred):
         # Leading Components (FRED)
         yield10 = fred.get_series('DGS10', observation_start=start_date)
         yield2 = fred.get_series('DGS2', observation_start=start_date)
-        
+
     except Exception as e:
         print(f"Error fetching FRED data: {e}")
         return None
+
+    # Growth: Initial Jobless Claims (weekly, timely growth signal — Phase 2, T2.2).
+    # Fetched separately with its own guard so a single missing/unavailable
+    # series degrades gracefully (Growth_Index falls back to its other
+    # inputs) instead of aborting the whole pipeline run.
+    try:
+        icsa_series = fred.get_series('ICSA', observation_start=start_date) # Initial Jobless Claims
+    except Exception as e:
+        print(f"Warning: Could not fetch ICSA (Initial Jobless Claims): {e}")
+        icsa_series = None
     
     # 2. Fetch Yahoo Finance Data
     print("Fetching Yahoo Finance data...")
@@ -109,6 +169,11 @@ def fetch_market_data(fred):
     df['DGS10'] = yield10.reindex(df.index).ffill()
     df['DGS2'] = yield2.reindex(df.index).ffill()
 
+    if icsa_series is not None:
+        df['ICSA'] = icsa_series.resample('D').ffill().reindex(df.index).ffill()
+    else:
+        df['ICSA'] = float('nan')
+
     # --- C. Index Calculation ---
     
     # 1. Macro
@@ -146,11 +211,15 @@ def fetch_market_data(fred):
 
     df['Z_PMI'] = get_z_score(df['PMI'], Z_SCORE_WINDOW)
     df['Z_Ratio'] = get_z_score(df['Cyc_Def_Ratio'], Z_SCORE_WINDOW)
-    
+    # Initial Jobless Claims is inverted (rising claims = weaker growth) before Z-scoring.
+    df['Z_ICSA'] = -1 * get_z_score(df['ICSA'], Z_SCORE_WINDOW)
+
     # --- Inflation: Use Rate of Change (RoC) to capture momentum ---
-    # Calculate 1-Year RoC (252 trading days)
-    df['T5YIFR_RoC'] = df['T5YIFR'].pct_change(periods=252)
-    df['Commodity_RoC'] = df['DBC'].pct_change(periods=252)
+    # Calculate quarterly RoC (63 trading days) — shortened from 252 (1yr),
+    # which combined with the 252-day Z-score below caused ~2 years of
+    # smoothing before any signal moved (Phase 2, T2.1).
+    df['T5YIFR_RoC'] = df['T5YIFR'].pct_change(periods=INFLATION_ROC_PERIOD)
+    df['Commodity_RoC'] = df['DBC'].pct_change(periods=INFLATION_ROC_PERIOD)
     
     # Normalize the RoC (not the absolute level)
     df['Z_T5YIFR'] = get_z_score(df['T5YIFR_RoC'], Z_SCORE_WINDOW)
@@ -166,8 +235,7 @@ def fetch_market_data(fred):
     df['Score_VIX'] = get_min_max_score(df['Sent_VIX_Raw'], SENTIMENT_WINDOW, inverse=True)
     df['Score_SafeHaven'] = get_min_max_score(df['Sent_SafeHaven_Raw'], SENTIMENT_WINDOW, inverse=False)
     df['Score_Junk'] = get_min_max_score(df['Junk_Spread'], SENTIMENT_WINDOW, inverse=True)
-    df['Score_PutCall'] = 50.0 # Placeholder
-    
+
     df['Sentiment_Index'] = (
         df['Score_Momentum'] + 
         df['Score_VIX'] + 
@@ -182,18 +250,35 @@ def fetch_market_data(fred):
     ) / 3.0
 
     # --- E. Final Indices ---
-    df['Growth_Index'] = 0.5 * df['Z_PMI'] + 0.5 * df['Z_Ratio']
+    # Growth: equal-weight across 3 inputs (PMI, Cyclical/Defensive ratio, Initial
+    # Jobless Claims inverted) — Phase 2, T2.2. A single price-level ratio
+    # (Cyc_Def_Ratio) shouldn't dominate the composite; ICSA is a weekly, timely
+    # signal that doesn't share the ratio's secular upward drift. skipna=True so a
+    # missing ICSA fetch degrades gracefully instead of NaN-ing out Growth_Index.
+    df['Growth_Index'] = df[['Z_PMI', 'Z_Ratio', 'Z_ICSA']].mean(axis=1, skipna=True)
     df['Inflation_Index'] = 0.5 * df['Z_T5YIFR'] + 0.5 * df['Z_Commodity']
     df['Liquidity_Index'] = df['Z_Liquidity']
 
+    # Smooth final Growth/Inflation composites with a 10-day EMA before regime
+    # classification (Phase 2, T2.3) — reduces day-to-day noise in the scatter.
+    df['Growth_Index'] = get_ema(df['Growth_Index'], EMA_SPAN)
+    df['Inflation_Index'] = get_ema(df['Inflation_Index'], EMA_SPAN)
+
     valid_df = df.dropna(subset=['Growth_Index', 'Sentiment_Index', 'Leading_Index'])
-    
+
     if valid_df.empty:
         print("Error: Not enough data points.")
         return None
 
+    # Regime confidence (Euclidean distance from origin) + buffered regime
+    # label (Phase 2, T2.4). Computed over the full valid history so the
+    # transition buffer has consecutive-day context, then we take the latest.
+    valid_df = valid_df.copy()
+    valid_df['Regime_Confidence'] = (valid_df['Growth_Index']**2 + valid_df['Inflation_Index']**2) ** 0.5
+    valid_df['Regime_Label'] = get_regime_label(valid_df['Growth_Index'], valid_df['Inflation_Index'])
+
     latest = valid_df.iloc[-1]
-    
+
     return {
         "growth": round(latest['Growth_Index'], 2),
         "inflation": round(latest['Inflation_Index'], 2),
@@ -209,13 +294,15 @@ def fetch_market_data(fred):
         
         "score_momentum": round(latest['Score_Momentum'], 1),
         "score_vix": round(latest['Score_VIX'], 1),
-        "score_putcall": 50.0,
         "score_safehaven": round(latest['Score_SafeHaven'], 1),
         "score_junk": round(latest['Score_Junk'], 1),
         
         "z_coppergold": round(latest['Z_CopperGold'], 2),
         "z_betavol": round(latest['Z_BetaVol'], 2),
-        "z_yieldspread": round(latest['Z_YieldSpread'], 2)
+        "z_yieldspread": round(latest['Z_YieldSpread'], 2),
+
+        "regime_confidence": round(latest['Regime_Confidence'], 2),
+        "regime_label": latest['Regime_Label']
     }
 
 def update_json_file(new_record_list):
@@ -244,7 +331,6 @@ def update_json_file(new_record_list):
                             item.get('net_liquidity_raw'),
                             item.get('score_momentum'),
                             item.get('score_vix'),
-                            item.get('score_putcall'),
                             item.get('score_safehaven'),
                             item.get('score_junk'),
                             item.get('z_coppergold'),
@@ -296,12 +382,13 @@ if __name__ == "__main__":
                 market_data['net_liquidity_raw'],    # 10
                 market_data['score_momentum'],       # 11
                 market_data['score_vix'],            # 12
-                market_data['score_putcall'],        # 13
-                market_data['score_safehaven'],      # 14
-                market_data['score_junk'],           # 15
-                market_data['z_coppergold'],         # 16
-                market_data['z_betavol'],            # 17
-                market_data['z_yieldspread']         # 18
+                market_data['score_safehaven'],      # 13
+                market_data['score_junk'],           # 14
+                market_data['z_coppergold'],         # 15
+                market_data['z_betavol'],            # 16
+                market_data['z_yieldspread'],        # 17
+                market_data['regime_confidence'],    # 18 (Phase 2, T2.4)
+                market_data['regime_label']          # 19 (Phase 2, T2.4)
             ]
             
             update_json_file(new_record)

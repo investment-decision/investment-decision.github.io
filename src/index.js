@@ -11,8 +11,9 @@ async function createCharts() {
         // 0: date
         // 1: growth_index, 2: inflation_index, 3: liquidity_index, 4: sentiment_index, 5: leading_index
         // 6: z_pmi, 7: z_ratio, 8: z_t5yifr, 9: z_commodity, 10: net_liquidity_raw
-        // 11: score_momentum, 12: score_vix, 13: score_putcall, 14: score_safehaven, 15: score_junk
-        // 16: z_coppergold, 17: z_betavol, 18: z_yieldspread
+        // 11: score_momentum, 12: score_vix, 13: score_safehaven, 14: score_junk
+        // 15: z_coppergold, 16: z_betavol, 17: z_yieldspread
+        // 18: regime_confidence, 19: regime_label (may be undefined on older records)
 
         // Update "Last Updated" text
         if (rawData.length > 0) {
@@ -85,7 +86,7 @@ async function createCharts() {
         // --- Chart 1: Macro Regime (Scatter) ---
         const trailLength = 60;
         const recentData = rawData.slice(-trailLength);
-        const scatterData = recentData.map(d => ({ x: d[1], y: d[2], date: d[0] })); // Growth(1), Inflation(2), Date(0)
+        const scatterData = recentData.map(d => ({ x: d[1], y: d[2], date: d[0], regime: d[19] })); // Growth(1), Inflation(2), Date(0), regime_label(19)
 
         // Calculate dynamic scale based on data
         const allXValues = scatterData.map(d => Math.abs(d.x));
@@ -118,10 +119,11 @@ async function createCharts() {
                         },
                         // Keep a compact value readout
                         label: (item) => {
-                            const { x, y } = item.raw || {};
+                            const { x, y, regime } = item.raw || {};
                             const fx = (typeof x === 'number') ? x.toFixed(2) : x;
                             const fy = (typeof y === 'number') ? y.toFixed(2) : y;
-                            return `Growth: ${fx}, Inflation: ${fy}`;
+                            const base = `Growth: ${fx}, Inflation: ${fy}`;
+                            return regime ? `${base} (${regime})` : base;
                         }
                     }
                 }
@@ -277,14 +279,13 @@ async function createCharts() {
         // Row 3: Sentiment Components (0-100)
         createComponentChart('chartSentMom', 11, '#ff9500', sentimentOptions);
         createComponentChart('chartSentVix', 12, '#ff9500', sentimentOptions);
-        // createComponentChart('chartSentPC', 13, '#ff9500', sentimentOptions);
-        createComponentChart('chartSentSafe', 14, '#ff9500', sentimentOptions);
-        createComponentChart('chartSentJunk', 15, '#ff9500', sentimentOptions);
+        createComponentChart('chartSentSafe', 13, '#ff9500', sentimentOptions);
+        createComponentChart('chartSentJunk', 14, '#ff9500', sentimentOptions);
 
         // Row 4: Leading Components
-        createComponentChart('chartLeadCG', 16, '#34c759');
-        createComponentChart('chartLeadBV', 17, '#34c759');
-        createComponentChart('chartLeadYS', 18, '#34c759');
+        createComponentChart('chartLeadCG', 15, '#34c759');
+        createComponentChart('chartLeadBV', 16, '#34c759');
+        createComponentChart('chartLeadYS', 17, '#34c759');
 
     } catch (error) {
         console.error("Error:", error);
