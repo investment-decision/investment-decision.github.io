@@ -105,3 +105,44 @@ def test_ema_smoothing_reduces_step_noise():
     raw_vol = noisy.diff().abs().mean()
     smoothed_vol = smoothed.diff().abs().mean()
     assert smoothed_vol < raw_vol
+
+
+# --- TC-U06: GROWTH_RATIO_ROC_PERIOD constant must exist (Growth fix) ----
+
+def test_growth_ratio_roc_period_exists():
+    """Backtesting Phase 2 against real data (272 days, backfilled) showed
+    Growth_Index never went negative once — Z_Ratio was being computed on
+    Cyc_Def_Ratio's raw price level, which secularly drifts upward
+    (cyclicals have outpaced defensives for years), keeping it positive
+    almost permanently regardless of actual regime. Fix mirrors what
+    already worked for Inflation: Z-score the ratio's RoC, not its level.
+
+    EXPECTED TO FAIL until this follow-up fix is implemented.
+    """
+    assert hasattr(ui, "GROWTH_RATIO_ROC_PERIOD"), (
+        "scripts/update_indices.py must expose GROWTH_RATIO_ROC_PERIOD as "
+        "a module-level constant"
+    )
+    assert ui.GROWTH_RATIO_ROC_PERIOD == 63
+
+
+def test_cyc_def_ratio_zscore_uses_roc_not_raw_level():
+    """A Cyc_Def_Ratio that secularly drifts upward (simulating years of
+    cyclical-sector outperformance) should NOT keep Z_Ratio permanently
+    positive once it's based on RoC instead of raw level: a ratio that's
+    been climbing steadily at a *constant* rate has ~flat RoC, which
+    should Z-score close to zero, not strongly positive.
+    """
+    idx = pd.date_range("2022-01-01", periods=700, freq="B")
+    # Steady secular uptrend, ~10%/year compounding — same drift the whole
+    # window, so the RATE of change is roughly constant throughout.
+    ratio = pd.Series(100 * (1.0004 ** np.arange(700)), index=idx)
+
+    roc = ratio.pct_change(periods=ui.GROWTH_RATIO_ROC_PERIOD)
+    z = ui.get_z_score(roc, window=252)
+
+    last_valid = z.dropna().iloc[-1]
+    assert abs(last_valid) < 1.0, (
+        f"a ratio with constant drift should Z-score near zero on its RoC "
+        f"(mean-reverting), got {last_valid}"
+    )

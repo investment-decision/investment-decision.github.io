@@ -64,7 +64,23 @@ red/green baseline — see the Coverage Matrix for current pass/fail state.
 **When:** `get_ema(series, span=10)` is applied
 **Then:** `get_ema` exists, and its mean day-over-day change is smaller than the raw series'
 **File:** `/test/unit/test_update_indices.py::test_ema_smoothing_reduces_step_noise`
-**Status:** FAIL (red) — pins the T2.3 contract; no such helper exists yet
+**Status:** PASS
+
+### TC-U06: GROWTH_RATIO_ROC_PERIOD constant exists (T2.6, follow-up)
+**Requirement:** Phase 2, T2.6 — added after the first real-data backfill showed Growth_Index never crossed zero (0/272 real days)
+**Given:** The `update_indices` module
+**When:** Checking for `GROWTH_RATIO_ROC_PERIOD`
+**Then:** It exists and equals `63`
+**File:** `/test/unit/test_update_indices.py::test_growth_ratio_roc_period_exists`
+**Status:** PASS
+
+### TC-U07: Cyc_Def_Ratio Z-score uses RoC, not raw level (T2.6, follow-up)
+**Requirement:** Phase 2, T2.6
+**Given:** A synthetic ratio with constant secular drift (~10%/year), mimicking real cyclical-sector outperformance
+**When:** Z-scoring the ratio's 63-day RoC (instead of its raw level)
+**Then:** The Z-score is near zero (mean-reverting), not permanently positive
+**File:** `/test/unit/test_update_indices.py::test_cyc_def_ratio_zscore_uses_roc_not_raw_level`
+**Status:** PASS
 
 ## Integration Tests
 
@@ -74,7 +90,7 @@ red/green baseline — see the Coverage Matrix for current pass/fail state.
 **When:** `fetch_market_data(fred)` runs end-to-end against the mocks
 **Then:** `growth < 0` and `inflation > 0` (Stagflation quadrant)
 **File:** `/test/integration/test_regime_quadrant.py::test_synthetic_stagflation_onset_lands_in_stagflation_quadrant`
-**Status:** PASS — an extreme, clean shock already classifies correctly today. Kept as a Phase 2 regression guard (must not break), not as proof of the bug — see TC-I02 for that.
+**Status:** PASS. Post-T2.6, also re-checked the full synthetic history (not just the latest classification): growth now crosses negative on 318/425 valid days (75%), vs 0/425 before T2.6 — confirms the fix produces real bidirectional movement, not just a lucky single classification.
 
 ### TC-I02: Live data is not stuck in a single quadrant (regression guard)
 **Requirement:** FR-01 — the reported bug
@@ -82,7 +98,7 @@ red/green baseline — see the Coverage Matrix for current pass/fail state.
 **When:** Checking the sign of `growth` and `inflation` across those records
 **Then:** Not every record shares the same sign on both axes
 **File:** `/test/integration/test_regime_quadrant.py::test_live_data_is_not_stuck_in_a_single_quadrant`
-**Status:** FAIL (red) — **this is the concrete reproduction of the reported bug.** All 49 stored records currently have `growth > 0` and `inflation > 0`. Must pass after Phase 2 ships and the pipeline is re-run.
+**Status:** PASS, confirmed against a real production backfill (`scripts/backfill_indices.py`, run via `weekly_update.yml`'s temporary `backfill` mode): 272 real trading days (2025-05-23 to 2026-06-19) recomputed with the new formula. Inflation crosses zero on 25% of real days (was 1%). Growth crossing zero on real data has NOT yet been re-confirmed after T2.6 — the backfill that produced these numbers predates T2.6; another backfill run is needed to verify T2.6 on real (not just synthetic) data.
 
 ## E2E Tests
 
@@ -97,16 +113,18 @@ red/green baseline — see the Coverage Matrix for current pass/fail state.
 
 | Requirement | Test Cases | Status |
 |---|---|---|
-| FR-01 (scatter quadrant correctness) | TC-I02, TC-E01 | RED → fix in Phase 2 |
-| Phase 2, T2.1 (63-day RoC) | TC-U04 | RED → implement |
-| Phase 2, T2.3 (EMA smoothing) | TC-U05 | RED → implement |
+| FR-01 (scatter quadrant correctness) | TC-I02, TC-E01 | GREEN on real data (Inflation axis); Growth axis fix (T2.6) not yet re-confirmed on real data |
+| Phase 2, T2.1 (63-day RoC) | TC-U04 | GREEN |
+| Phase 2, T2.3 (EMA smoothing) | TC-U05 | GREEN |
 | Phase 2, T2.5 (backtest) | TC-I01 | GREEN (regression guard) |
+| Phase 2, T2.6 (Growth RoC follow-up) | TC-U06, TC-U07 | GREEN (synthetic-verified; needs a fresh real-data backfill to confirm) |
 | `get_z_score` correctness | TC-U01, TC-U02, TC-U03 | GREEN (pre-existing) |
 
 ## Known Gaps
 
 - FR-02 (composite line charts) and FR-07 (responsive layout) are not covered by automated tests — manual checks only, per the existing project Test Strategy. No JS test framework exists in this repo; adding one is out of scope for this bug fix.
-- Phase 2's T2.2 (expanded Growth Index inputs: ICSA, T10Y3M) has no dedicated test yet — TC-I02 will validate it indirectly once the pipeline is re-run, but a more targeted unit test should be added during `/sdd-execute` once the new indicator wiring exists to test against.
+- T2.6 was discovered via a real production backfill, not anticipated when this file was first locked. Reopened here to document the follow-up fix and its tests, consistent with the SDD validate→execute feedback loop. The constant rename from `INFLATION_ROC_PERIOD`-only to a parallel `GROWTH_RATIO_ROC_PERIOD` was the minimal fix; no other formula inputs were touched.
+- A second real-data backfill is still needed to confirm T2.6 the same way T2.1/T2.3 were confirmed (TC-I02 passing was measured BEFORE T2.6 shipped — only proves Inflation's fix, not Growth's).
 - Sentiment/Liquidity index changes (research.md Option 1, Sections C/D) are explicitly out of scope for this phase (deferred to Phase 6) and have no tests here.
 
 ---

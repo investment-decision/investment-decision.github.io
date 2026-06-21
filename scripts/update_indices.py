@@ -11,6 +11,7 @@ DATA_PATH = 'data/market_indices.json'
 Z_SCORE_WINDOW = 252  # 1 year for Z-Scores
 SENTIMENT_WINDOW = 504 # 2 years for Min-Max Scaling (Sentiment)
 INFLATION_ROC_PERIOD = 63  # 1 quarter for Inflation Rate-of-Change (was 252/1yr — too slow to react)
+GROWTH_RATIO_ROC_PERIOD = 63  # Cyc/Def ratio is Z-scored on its RoC, not its raw level (see Z_Ratio below)
 EMA_SPAN = 10  # EMA smoothing span applied to final Growth/Inflation composites
 REGIME_TRANSITION_DAYS = 3  # consecutive days required before a regime label officially flips
 
@@ -218,7 +219,14 @@ def compute_index_dataframe(fred):
     df = df.ffill()
 
     df['Z_PMI'] = get_z_score(df['PMI'], Z_SCORE_WINDOW)
-    df['Z_Ratio'] = get_z_score(df['Cyc_Def_Ratio'], Z_SCORE_WINDOW)
+    # Cyc_Def_Ratio is built from raw ETF price levels, which secularly drift
+    # upward together (cyclicals have outpaced defensives for years independent
+    # of regime). Z-scoring the raw level kept this positive almost permanently
+    # (confirmed via backtest: 0/272 real days negative). Z-score its RoC
+    # instead — the same fix already applied to Inflation — so this measures
+    # recent relative-performance *change*, which is actually mean-reverting.
+    df['Cyc_Def_RoC'] = df['Cyc_Def_Ratio'].pct_change(periods=GROWTH_RATIO_ROC_PERIOD)
+    df['Z_Ratio'] = get_z_score(df['Cyc_Def_RoC'], Z_SCORE_WINDOW)
     # Initial Jobless Claims is inverted (rising claims = weaker growth) before Z-scoring.
     df['Z_ICSA'] = -1 * get_z_score(df['ICSA'], Z_SCORE_WINDOW)
 
