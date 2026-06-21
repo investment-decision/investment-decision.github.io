@@ -87,7 +87,15 @@ def get_min_max_score(series, window, inverse=False):
         
     return score
 
-def fetch_market_data(fred):
+def compute_index_dataframe(fred):
+    """Fetch raw data and compute every index column for the full history.
+
+    Returns the full `valid_df` (one row per trading day with a complete
+    set of indices), or None if fetching/validation failed. Shared by
+    `fetch_market_data` (latest day only, used by the daily cron) and
+    `backfill_indices.py` (every historical day, used for one-time
+    formula-revision backfills) so both always run identical logic.
+    """
     # --- A. Data Collection Setup (Last 3 years to ensure 2-year lookback) ---
     start_date = (datetime.now() - timedelta(days=365*3)).strftime('%Y-%m-%d')
     
@@ -272,38 +280,82 @@ def fetch_market_data(fred):
 
     # Regime confidence (Euclidean distance from origin) + buffered regime
     # label (Phase 2, T2.4). Computed over the full valid history so the
-    # transition buffer has consecutive-day context, then we take the latest.
+    # transition buffer has consecutive-day context.
     valid_df = valid_df.copy()
     valid_df['Regime_Confidence'] = (valid_df['Growth_Index']**2 + valid_df['Inflation_Index']**2) ** 0.5
     valid_df['Regime_Label'] = get_regime_label(valid_df['Growth_Index'], valid_df['Inflation_Index'])
 
-    latest = valid_df.iloc[-1]
+    return valid_df
 
+
+def row_to_market_data(row):
+    """Convert one row of the `compute_index_dataframe` output into the
+    market_data dict shape (same shape `fetch_market_data` used to build
+    inline). Shared by the daily cron (latest row) and the backfill script
+    (every row).
+    """
     return {
-        "growth": round(latest['Growth_Index'], 2),
-        "inflation": round(latest['Inflation_Index'], 2),
-        "liquidity": round(latest['Liquidity_Index'], 2),
-        "sentiment": round(latest['Sentiment_Index'], 2),
-        "leading": round(latest['Leading_Index'], 2),
-        
-        "z_pmi": round(latest['Z_PMI'], 2),
-        "z_ratio": round(latest['Z_Ratio'], 2),
-        "z_t5yifr": round(latest['Z_T5YIFR'], 2),
-        "z_commodity": round(latest['Z_Commodity'], 2),
-        "net_liquidity_raw": round(latest['Net_Liquidity_Raw'], 2),
-        
-        "score_momentum": round(latest['Score_Momentum'], 1),
-        "score_vix": round(latest['Score_VIX'], 1),
-        "score_safehaven": round(latest['Score_SafeHaven'], 1),
-        "score_junk": round(latest['Score_Junk'], 1),
-        
-        "z_coppergold": round(latest['Z_CopperGold'], 2),
-        "z_betavol": round(latest['Z_BetaVol'], 2),
-        "z_yieldspread": round(latest['Z_YieldSpread'], 2),
+        "growth": round(row['Growth_Index'], 2),
+        "inflation": round(row['Inflation_Index'], 2),
+        "liquidity": round(row['Liquidity_Index'], 2),
+        "sentiment": round(row['Sentiment_Index'], 2),
+        "leading": round(row['Leading_Index'], 2),
 
-        "regime_confidence": round(latest['Regime_Confidence'], 2),
-        "regime_label": latest['Regime_Label']
+        "z_pmi": round(row['Z_PMI'], 2),
+        "z_ratio": round(row['Z_Ratio'], 2),
+        "z_t5yifr": round(row['Z_T5YIFR'], 2),
+        "z_commodity": round(row['Z_Commodity'], 2),
+        "net_liquidity_raw": round(row['Net_Liquidity_Raw'], 2),
+
+        "score_momentum": round(row['Score_Momentum'], 1),
+        "score_vix": round(row['Score_VIX'], 1),
+        "score_safehaven": round(row['Score_SafeHaven'], 1),
+        "score_junk": round(row['Score_Junk'], 1),
+
+        "z_coppergold": round(row['Z_CopperGold'], 2),
+        "z_betavol": round(row['Z_BetaVol'], 2),
+        "z_yieldspread": round(row['Z_YieldSpread'], 2),
+
+        "regime_confidence": round(row['Regime_Confidence'], 2),
+        "regime_label": row['Regime_Label']
     }
+
+
+def fetch_market_data(fred):
+    """Latest-day market data dict, used by the daily cron."""
+    valid_df = compute_index_dataframe(fred)
+    if valid_df is None:
+        return None
+    return row_to_market_data(valid_df.iloc[-1])
+
+def market_data_to_record(date_str, market_data):
+    """Convert (date, market_data dict) into the flat array row shape
+    written to data/market_indices.json. Order MUST match the migration
+    logic in update_json_file and the parsing in src/index.js.
+    """
+    return [
+        date_str,                            # 0
+        market_data['growth'],               # 1
+        market_data['inflation'],            # 2
+        market_data['liquidity'],            # 3
+        market_data['sentiment'],            # 4
+        market_data['leading'],              # 5
+        market_data['z_pmi'],                # 6
+        market_data['z_ratio'],              # 7
+        market_data['z_t5yifr'],             # 8
+        market_data['z_commodity'],          # 9
+        market_data['net_liquidity_raw'],    # 10
+        market_data['score_momentum'],       # 11
+        market_data['score_vix'],            # 12
+        market_data['score_safehaven'],      # 13
+        market_data['score_junk'],           # 14
+        market_data['z_coppergold'],         # 15
+        market_data['z_betavol'],            # 16
+        market_data['z_yieldspread'],        # 17
+        market_data['regime_confidence'],    # 18 (Phase 2, T2.4)
+        market_data['regime_label']          # 19 (Phase 2, T2.4)
+    ]
+
 
 def update_json_file(new_record_list):
     data = []
@@ -366,31 +418,7 @@ if __name__ == "__main__":
         market_data = fetch_market_data(fred)
         
         if market_data:
-            # Create record as a List (Array) to save space
-            # Order MUST match the migration logic and index.html parsing
-            new_record = [
-                datetime.now().strftime("%Y-%m-%d"), # 0
-                market_data['growth'],               # 1
-                market_data['inflation'],            # 2
-                market_data['liquidity'],            # 3
-                market_data['sentiment'],            # 4
-                market_data['leading'],              # 5
-                market_data['z_pmi'],                # 6
-                market_data['z_ratio'],              # 7
-                market_data['z_t5yifr'],             # 8
-                market_data['z_commodity'],          # 9
-                market_data['net_liquidity_raw'],    # 10
-                market_data['score_momentum'],       # 11
-                market_data['score_vix'],            # 12
-                market_data['score_safehaven'],      # 13
-                market_data['score_junk'],           # 14
-                market_data['z_coppergold'],         # 15
-                market_data['z_betavol'],            # 16
-                market_data['z_yieldspread'],        # 17
-                market_data['regime_confidence'],    # 18 (Phase 2, T2.4)
-                market_data['regime_label']          # 19 (Phase 2, T2.4)
-            ]
-            
+            new_record = market_data_to_record(datetime.now().strftime("%Y-%m-%d"), market_data)
             update_json_file(new_record)
         else:
             print("Failed to generate market data.")
